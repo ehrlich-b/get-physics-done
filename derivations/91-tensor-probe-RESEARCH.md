@@ -256,6 +256,26 @@ monomials (aliasing). The B1 control caught it (spurious nonzero B1 deficits off
 **off-slice** points (z,z̄ independent). All reported numbers use off-slice sampling with the B1
 control passing; the exact-Q rank (no sampling) independently gives dim=118 (s01), deficit=1.
 
+**The dense-M modular-audit artifact (recorded, NOT erased).** The modular `dimension_audit`
+(point-sampled rank, two primes) is reliable on the sparse s01 (B1-control deficit 0) but returns
+a SPURIOUS B1-control deficit = 1 on DENSE generic M — a sampling-rank artifact (too few points /
+off-slice rank saturation at this 243-vector basis), NOT a real span gap. The third path
+(`tensor_probe_indep_check.py`, `denseaudit`) diagnoses it exactly: the matched-monomial
+york_solve at D=3 (kw=2) is `B1 consistent=True, B3 consistent=False` on BOTH dense matters
+(no sampling) — a Hessian B1 IS in the gauge image on dense M, so the modular audit's nonzero
+B1-deficit is the artifact, not physics. **The verdict's deficit = 1 therefore rests on the
+sparse-s01 audit (B1-deficit 0) + the exact-Q rank (dim=118, deficit 1, no sampling) + the
+rep-theory multiplicity below — never on the dense modular audit.** (The D=2 dispatch default was
+escalated to D=3: at D=2 the B1 control is degree-insufficient for dense/symbolic M, so its B3
+line would be unusable under Trap #14.)
+
+**Rep-theory confirmation of deficit = 1 (independent of any rank computation).** The λ=12
+(1,1)-Hermitian TT multiplet IS the su(3) adjoint (dim 8). B3 = dφ_M⊗dφ_M is the symmetric square
+of the adjoint-valued moment gradient, so its (1,1)-TT content lives in Sym²(adjoint); for su(3),
+**Sym²(8) contains the adjoint 8 exactly ONCE** (multiplicity one). The per-direction TT-residue
+dimension = 1 is therefore FORCED by representation theory — the audit's deficit=1 and the exact-Q
+deficit=1 merely realize this multiplicity-one fact.
+
 **Generic-M robustness (Guard 4).** LIVE on the sparse single-generator s01, on a dense generic M
 (all 8 params nonzero, off the diagonal stratum), and on a second dense M — york_solve(B1)
 consistent and york_solve(B3) inconsistent in every case. Direction-independent; co-diagonalization

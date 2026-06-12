@@ -376,9 +376,11 @@ def indep_audit(Mcx, npts=30, seed=7, offslice=True, g=None, ginv=None, Gam=None
 # AND the unknown omega coeffs.  We keep D small -- the executor's effective degree -- to stay
 # tractable, and confirm INCONSISTENCY is an identity in the m-params, not an instance accident.)
 # ============================================================================
-def symbolic_M_solve(D=2, kw=2, kf=2):
+def symbolic_M_solve(D=3, kw=2, kf=2):
     """york_solve(B3) and york_solve(B1) for a SYMBOLIC traceless cut M (8 real params).  Returns
-    (b1_consistent, b3_consistent)."""
+    (b1_consistent, b3_consistent).  DEFAULT D=3: at D=2 (kw=2) the B1 control is degree-INSUFFICIENT
+    (inconsistent) for symbolic/dense matter, so its B3 line is unusable under trap 14; D=3 is the
+    first degree where the B1 control passes (then B3 stays inconsistent => the all-matter LIVE certificate)."""
     g = metric(); ginv = metric_inv(g)
     Gam = christoffel_hol(g, ginv); GamB = christoffel_antihol(g, ginv)
     Msym, s = TP.Mmat_cut_cx("q")
@@ -427,9 +429,9 @@ def exact_york_on_dense_M():
     for nm, Mc in [("dense1", Mden), ("dense2", Mden2)]:
         B1 = B1_control(Mc, g, ginv)
         B3 = B3_target(Mc)
-        c1, _, _ = general_york_solve(B1, D=2, kw=2, kf=2, g=g, ginv=ginv, Gam=Gam, GamB=GamB,
+        c1, _, _ = general_york_solve(B1, D=3, kw=2, kf=2, g=g, ginv=ginv, Gam=Gam, GamB=GamB,
                                       label=f"{nm}.B1")
-        c3, _, _ = general_york_solve(B3, D=2, kw=2, kf=2, g=g, ginv=ginv, Gam=Gam, GamB=GamB,
+        c3, _, _ = general_york_solve(B3, D=3, kw=2, kf=2, g=g, ginv=ginv, Gam=Gam, GamB=GamB,
                                       label=f"{nm}.B3")
         out[nm] = (c1, c3)
         print(f">>> EXACT york on {nm}: B1 consistent={c1}, B3 consistent={c3}", flush=True)
@@ -477,9 +479,9 @@ if __name__ == "__main__":
             print(f">>> {tag}: dim={a['dim_span']} b1_def={a['b1_deficit']} "
                   f"b3_def={a['b3_deficit']}", flush=True)
 
-    elif arg == "symbolicM":         # symbolic 8-param M
-        c1, c3 = symbolic_M_solve(D=2, kw=2, kf=2)
-        print(f"\n>>> SYMBOLIC-M (8 params) D=2: B1 consistent={c1}, B3 consistent={c3}")
+    elif arg == "symbolicM":         # symbolic 8-param M (D=3: first degree the B1 control passes)
+        c1, c3 = symbolic_M_solve(D=3, kw=2, kf=2)
+        print(f"\n>>> SYMBOLIC-M (8 params) D=3: B1 consistent={c1}, B3 consistent={c3}")
 
     else:
         print(f"unknown arg {arg!r}; use: xcheck|sweep2|sweep4|denseaudit|modaudit|aliasing|symbolicM")

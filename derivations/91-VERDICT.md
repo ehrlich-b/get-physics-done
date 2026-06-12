@@ -43,10 +43,18 @@ Killing/parallel directions in ker δ*; the three split blocks L²-orthogonal.
 - **Isotypic type:** the (2,0)+(0,2) blocks are individually pure gauge; the obstruction is the
   J-invariant **(1,1)-Hermitian** sector = the Boucetta **λ=12 dim-8** TT target — exactly the
   λ₁-threshold where the v25 moment fields sit.
-- **Dimension audit (Trap #15, MANDATORY):** dim(gauge+conf) = 181; **B1-control deficit = 0**;
-  **B3 deficit = 1** (off-slice, two primes cross-checked; exact-Q rank independently confirms).
-  TT-residue dim = 1 per su(3)-generator direction ≤ dim-8 ⇒ **no under-spanning** (fake-LIVE
-  excluded). Generic-M robustness (Guard 4): LIVE on sparse s01 AND two dense generic matters.
+- **No-under-spanning (Trap #15), established WITHOUT the modular audit.** The fake-LIVE failure
+  mode is excluded by three mutually independent legs: (i) the **control-gated general-ω
+  obstruction** — B3 = δ*ω+f·g is INCONSISTENT for a FULLY GENERAL polynomial ω (not the
+  {φ_A dφ_B} ansatz) at every degree where the B1 Hessian control IS solved (so the ansatz is
+  provably complete): D=4/5/6 sparse, D=5/6 dense (orchestrator arbiter), and D=2..7/kw≤4/symbolic
+  8-param M at D=3 (third path); (ii) **rep theory** — the per-direction TT-residue dim is FORCED
+  to be 1 because Sym²(su(3) adjoint) ⊇ adjoint exactly once (multiplicity one); (iii) the exact-Q
+  rank (no sampling, dim=118 on s01) gives deficit=1. The modular `dimension_audit` corroborates on
+  the sparse s01 (B1-deficit 0, B3-deficit 1) but is a **sampling-rank artifact on dense M**
+  (spurious B1-deficit=1 — the exact york_solve(B1) is consistent there); it is recorded, not relied
+  upon (RESEARCH §7). **Generic-M robustness (Guard 4):** LIVE on sparse s01, two dense generic
+  matters, and symbolic 8-param M — direction-independent and degree-stable.
 
 ```
 verdict({B2:0, B4:0, B5:0, B3:1, B6:1}) = ('LIVE', ['B3','B6'])
@@ -109,11 +117,28 @@ reachable-in-principle, the selection law (Block C) still open.**
 
 ## Deliverables
 
-`code/tensor_probe.py` (executor; Gate 0–4 + non-hardwired verdict() + dimension_audit + the
-frozen battery); `derivations/91-tensor-probe-RESEARCH.md` (§1–6 grounding, §7 per-member results,
-§8 verdict/payload, §9 v32 ledger); `derivations/91-GATE-{1..4}-SUMMARY.md`; `91-VERDICT.md`.
-Independent verify path (`tensor_probe_verify.py`) + third path expected for v26–v30 parity
-(verifier stage).
+Three independent code paths agree on LIVE (exact over Q), plus the orchestrator arbiter:
+- **Executor** `code/tensor_probe.py` (Gate 0 8/8 + Gate 1 controls + Gate 2 Hessians + Gate 3/4
+  verdict; non-hardwired `verdict()` + `york_solve` + the frozen battery {B1–B6}; full pipeline
+  25/25): B3 york_solve INCONSISTENT, B1 control consistent + reconstructed ⇒ LIVE.
+- **Verify path** `code/tensor_probe_verify.py`: the general-ω control-gated arbiter (`main_arbiter`)
+  independently confirms B3 inconsistent where B1 solves (sparse+dense, D=4/5/6). The TEST-1 Gram
+  divergence-EXHIBIT (`main_test1`) is the positive-residual certificate; its full-basis Gram is
+  compute-bound on the ρ-rational fields and is **deferred to slot 92's Gate-0** (which consumes the
+  exhibited residual).
+- **Third path** `code/tensor_probe_indep_check.py`: adversarial refutation FAILED — independent FS+δ*
+  rebuild (cross-checks the executor exactly); general-ω sweep D=2..7, kw≤4, up to 1650 coeffs;
+  symbolic 8-param M at D=3 (`B1 consistent, B3 inconsistent` — the all-matter certificate); both
+  dense M at D=3 likewise; diagnoses the dense-M `dimension_audit` B1-deficit=1 as a sampling artifact.
+- `derivations/91-tensor-probe-RESEARCH.md` (§1–6 grounding, §7 per-member + the dimension audit and
+  its dense-M artifact + the rep-theory deficit-1, §8 verdict/payload, §9 v32 ledger);
+  `91-GATE-{0..4}-SUMMARY.md`; `91-VERDICT.md`.
+
+The Hessian-identity (∇∇f=δ*(df)), the δ*-product rule (δ*(φdφ)=dφ⊗dφ+φ∇∇φ), and the Boucetta
+threshold dims (λ=12 dim-8 (1,1)-TT) were hand-checked. The positive-exhibit certificate (the
+explicit L²-orthogonal residual with δr=0, tr r=0, ‖r‖²≠0) was NOT completed in-run (Gram cliff);
+the LIVE verdict stands on the obstruction (B3 ∉ gauge⊕conformal) + the York existence theorem +
+the rep-theory multiplicity, which is mathematically complete.
 
 ## NEXT
 
