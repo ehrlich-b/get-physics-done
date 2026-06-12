@@ -425,6 +425,121 @@ def G_M_field(Mcx):
 
 
 # ============================================================================
+# 3c. EXACT L^2 INTEGRATION ON CP^2 (Fubini-Study)  -- the split solver's inner product
+# ----------------------------------------------------------------------------
+# The FS volume form on the chart z in C^2:  dV_FS = c_n * d^4z / rho^{n+1} = c_2 d^4z/rho^3,
+# d^4z = (i/2)^2 dz1 dz1b dz2 dz2b (real Lebesgue on C^2 = R^4).  By U(2) chart symmetry the
+# integral of a monomial z^A zbar^B / rho^k vanishes unless A=B (matched powers); for matched
+# powers it is a real beta-integral.  We compute EXACT rationals; only RATIOS matter for the
+# orthogonal projection (the overall constant c_2 cancels), so we set c_2 = 1 and use:
+#   I(a,b,k) := integral_{C^2} (|z1|^{2a} |z2|^{2b} / rho^k) d^4z / rho^3
+#            (k absorbed: the field denominators are powers of rho).
+# Switch to s_i = |z_i|^2 >= 0:  d^4z = pi^2 ds1 ds2 (angular 2pi each / the (i/2)^2 ... ); the
+# overall pi^2 cancels in ratios.  Then
+#   I(a,b;K) = integral_0^inf integral_0^inf s1^a s2^b / (1+s1+s2)^K ds1 ds2,  K = k+3,
+#            = a! b! (K-3-a-b)! / (K-1)!   (Dirichlet/beta), valid for K-3-a-b >= 1, i.e.
+#   I(a,b;K) = Gamma(a+1)Gamma(b+1)Gamma(K-a-b-2) / Gamma(K)   (exact rational for integer args).
+# This is the ONLY integral identity used; verified numerically at several (a,b,K) at Gate 1.
+# ============================================================================
+def _mono_integral(a, b, K):
+    """integral_0^inf^2 s1^a s2^b / (1+s1+s2)^K ds1 ds2 = a! b! (K-a-b-3)! / (K-1)!  (exact).
+    Requires K - a - b - 3 >= 0 (convergence + non-negative factorial)."""
+    a, b, K = int(a), int(b), int(K)
+    m = K - a - b - 3
+    if m < 0:
+        raise ValueError(f"L^2 integral divergent/ill-posed: K-a-b-3={m} < 0 (a={a},b={b},K={K})")
+    return Rational(sp.factorial(a) * sp.factorial(b) * sp.factorial(m), sp.factorial(K - 1))
+
+
+def _rho_power_of(den):
+    """Given a denominator that is const * rho^k, return (k, const).  rho is irreducible."""
+    rho = _rho()
+    den = sp.expand(den)
+    if den == 1:
+        return 0, sp.Integer(1)
+    fl = sp.factor_list(den)
+    const = fl[0]
+    k = 0
+    for fac, mult in fl[1]:
+        if sp.expand(fac - rho) == 0:
+            k = mult
+        elif sp.expand(fac + rho) == 0:    # (-rho)
+            k = mult
+            const *= (-1) ** mult
+        else:
+            raise ValueError(f"_rho_power_of: factor {fac} is not rho")
+    return k, const
+
+
+def l2_scalar(f):
+    """EXACT L^2 inner-product integral of a scalar f(z,zbar) over CP^2 (FS), up to the
+    universal constant pi^2 (cancels in all ratios).  Expand f = sum c_{A,B} z^A zbar^B / rho^k;
+    only matched powers A==B survive the U(2)-angular average; sum c_{a,b} I(a,b; k+3).
+    Returns an exact Rational."""
+    f = together(cancel(f))
+    num, den = sp.fraction(f)
+    k, const = _rho_power_of(den)
+    K = k + 3
+    numpoly = sp.expand(num / const)
+    total = sp.Integer(0)
+    poly = sp.Poly(numpoly, Z1, Z2, Z1B, Z2B)
+    for monom, coeff in poly.terms():
+        a1, a2, b1, b2 = monom            # powers of z1,z2,z1b,z2b
+        if a1 == b1 and a2 == b2:         # matched powers survive U(2)-averaging
+            total += coeff * _mono_integral(a1, a2, K)
+    return cancel(total)
+
+
+# ----------------------------------------------------------------------------
+# Pointwise tensor inner product of symmetric 2-tensors (complex blocks) and its
+# L^2 integral.  A real symmetric 2-tensor h, written in the real cotangent basis, is
+#   h = H20_{ab} dz^a dz^b + H02_{ab} dzbar^a dzbar^b + H11_{a bbar}(dz^a dzbar^b + dzbar^b dz^a)
+# with H02 = conj(H20), H11 Hermitian (reality).  The Kahler real metric is
+#   G = g_{a bbar}(dz^a dzbar^b + dzbar^b dz^a),  so on covectors the pairing is
+#   <dz^a, dzbar^b> = g^{a bbar} = ginv[b,a]  (= the TRANSPOSE of fs_metric_inv; verified
+#   == the (dz,dzbar) block of the real 4x4 inverse metric), <dz^a,dz^b>=0.
+# The pointwise Riemannian inner product <h,h'> = G^{mu rho}G^{nu sigma} h_{mu nu} h'_{rho sigma}
+# (full 4x4 contraction in the complex (dz1,dz2,dzbar1,dzbar2) basis) reduces EXACTLY to
+#   <h,h'> = 2 g^{a dbar} g^{c bbar} H11_{a bbar} H11'_{c dbar}              [ (1,1).(1,1), coeff 2 ]
+#          +   g^{a cbar} g^{b dbar} H20_{ab} H02'_{cd}                      [ h(2,0).h'(0,2) ]
+#          +   g^{c abar} g^{d bbar} H02_{ab} H20'_{cd}                      [ h(0,2).h'(2,0) ]
+# with g^{a bbar} = ginv[b,a] (the TRANSPOSE of fs_metric_inv; = the (dz,dzbar) block of the
+# real 4x4 inverse metric).  The (0,2).(2,0) term uses the CONJUGATE index order gu(c,a)gu(d,b)
+# (Hermitian structure: g^{a bbar} is conjugated when the (0,2) block sits on the left).
+# DERIVED by separating h1,h2 block symbols and reading the EXACT coefficients off the brute
+# 4x4 contraction (B-B coeff 2 = merge of (ab),(cd) orderings; A1-C2 coeff 1 with gu(a,c)gu(b,d),
+# C1-A2 coeff 1 with gu(c,a)gu(d,b)).  Symbolically VERIFIED == brute on fully-independent blocks
+# + numerically on two tensors, their cross term, and symmetry at two points (earlier
+# wrong factor/symmetrization/transpose caught here -- see SUMMARY 'tensor inner product').
+# ----------------------------------------------------------------------------
+def tensor_dot_point(hb, hpb, ginv=None):
+    """Pointwise <h, h'> for two symmetric 2-tensors given as block-triples (H20,H11,H02).
+    Uses g^{a bbar} = ginv[b,a] (transpose of fs_metric_inv).  Returns a scalar (rational in
+    z,zbar); real for real tensors on the reality slice."""
+    if ginv is None:
+        ginv = fs_metric_inv()
+    H20, H11, H02 = hb
+    P20, P11, P02 = hpb
+    gu = lambda a, b: ginv[b, a]          # g^{a bbar} (the verified transpose pairing)
+    s11 = sp.Integer(0)
+    t = sp.Integer(0)
+    for a in range(2):
+        for b in range(2):
+            for c in range(2):
+                for d in range(2):
+                    s11 += gu(a, d) * gu(c, b) * H11[a, b] * P11[c, d]
+                    t += gu(a, c) * gu(b, d) * H20[a, b] * P02[c, d]      # h(2,0).h'(0,2)
+                    t += gu(c, a) * gu(d, b) * H02[a, b] * P20[c, d]      # h(0,2).h'(2,0)
+    return cancel(2 * s11 + t)
+
+
+def l2_tensor(hb, hpb, ginv=None):
+    """EXACT L^2 inner product of two symmetric 2-tensor FIELDS over CP^2 (FS), up to pi^2.
+    = integral_CP2 <h(z), h'(z)> dV_FS."""
+    return l2_scalar(tensor_dot_point(hb, hpb, ginv))
+
+
+# ============================================================================
 # GATE 0 -- machinery + freeze (fail-fast).  Built incrementally; this stub will be
 # fleshed out as the split solver and the dimension table land.
 # ============================================================================
