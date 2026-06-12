@@ -1257,7 +1257,8 @@ def gate1(g0info=None):
     # A Hessian delta*(dphi) is pure gauge.  Its (1,1) block, fed through Delta_L^{(1,1)}, must stay
     # in the (1,1) gauge image -- i.e. extract_tt of (Delta_L^{(1,1)} of the Hessian) has ZERO (1,1)
     # TT residue.  If it carried TT, the convention bookkeeping would be wrong -> STOP.
-    phiY = cancel(phi_field(_M_rat("c")))
+    phiY = cancel(phi_field(Matrix([[0, 1, 0], [1, 0, 0], [0, 0, 0]])))   # sparse s01 (fast; the
+    #   gauge-preservation physics is matter-independent, so a sparse generator suffices)
     dstar = delta_star_of_dphi(phiY, g, ginv, simp=together)     # a pure-gauge tensor (a Hessian)
     dL_dstar = lichnerowicz_11(dstar, g, ginv, Gam, GamB, R)
     rg, _, _, _, infog = extract_tt(dL_dstar, g, ginv, Gam, verify=False)
