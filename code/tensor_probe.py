@@ -1394,6 +1394,130 @@ def york_solve(target_blocks, g=None, ginv=None, verify_symbolic=False, phis=Non
     return True, recon_ok
 
 
+def _york_solve_blocks(target_blocks, blocks, phi_unused=None, g=None, ginv=None):
+    """york_solve restricted to a SUBSET of complex blocks (0=2,0; 1=1,1; 2=0,2) -- localizes the
+    obstruction to an isotypic sector.  Returns (consistent, None).  Same complete gauge+conformal
+    ansatz as york_solve; only the matched-block set differs."""
+    if g is None:
+        g = fs_metric()
+    if ginv is None:
+        ginv = fs_metric_inv(g)
+    phis = _potentials()
+    n = len(phis)
+    cH = list(symbols(f"cH0:{n * n}")); cA = list(symbols(f"cA0:{n * n}")); dd = list(symbols(f"d0:{n * n}"))
+    wh = [sp.Integer(0), sp.Integer(0)]; wa = [sp.Integer(0), sp.Integer(0)]; idx = 0
+    for nA, pA in phis:
+        for nB, pB in phis:
+            for ax in range(2):
+                wh[ax] += cH[idx] * pA * dz(pB, ax); wa[ax] += cA[idx] * pA * dzb(pB, ax)
+            idx += 1
+    fexpr = sp.Integer(0); idx = 0
+    for nA, pA in phis:
+        for nB, pB in phis:
+            fexpr += dd[idx] * pA * pB; idx += 1
+    W = delta_star(wh, wa, g, ginv, simp=together)
+    Cf = conformal_block(fexpr, g, simp=together)
+    eqs = []
+    for k in blocks:
+        for a in range(2):
+            for b in range(2):
+                diff = together(target_blocks[k][a, b] - W[k][a, b] - Cf[k][a, b])
+                num, den = sp.fraction(diff)
+                for coeff in sp.Poly(expand(num), Z1, Z2, Z1B, Z2B).coeffs():
+                    eqs.append(expand(coeff))
+    eqs = [e for e in set(eqs) if e != 0]
+    return len(sp.linsolve(eqs, cH + cA + dd)) > 0, None
+
+
+# ----------------------------------------------------------------------------
+# THE DIMENSION AUDIT (Trap #15, MANDATORY for LIVE).  Exact rank deficit of B3 against the
+# COMPLETE gauge+conformal image, via OFF-REALITY-SLICE modular point-sampling (two primes,
+# cross-checked).  CRITICAL: the points MUST be off the reality slice (z, zbar INDEPENDENT generic
+# rationals) -- reality-slice points (z=zbar) ALIAS the Wirtinger structure and FALSELY report
+# B3 in-span (a 2-real-dim slice does not separate the 4 independent z,zbar monomials -- this bug
+# was diagnosed and rejected during the run).  The B1 control MUST give deficit 0 (a Hessian is
+# gauge); B3's deficit = the TT-residue dimension, which must be <= the Boucetta TT multiplicity
+# (1 <= dim-8 for the lambda=12 (1,1) sector) -- a deficit EXCEEDING the multiplicity would signal
+# under-spanning (fake-LIVE).  delta* is LINEAR so the holo-only + antiholo-only product 1-forms
+# span the FULL gauge image (any coupled omega = a linear combination).
+# ----------------------------------------------------------------------------
+_PRIMES_AUDIT = (2147483647, 2147483629)
+
+
+def _tofrac(x):
+    x = sp.nsimplify(x)
+    return (int(sp.numer(x)), int(sp.denom(x)))
+
+
+def _modrank(rows, P):
+    """Exact rank over GF(P) of rows of (numerator,denominator) rationals (Gaussian elimination)."""
+    M = [[(num * pow(den, P - 2, P)) % P for (num, den) in r] for r in rows]
+    m = len(M); nn = len(M[0]) if m else 0; rank = 0
+    for col in range(nn):
+        piv = None
+        for r in range(rank, m):
+            if M[r][col] % P != 0:
+                piv = r; break
+        if piv is None:
+            continue
+        M[rank], M[piv] = M[piv], M[rank]
+        inv = pow(M[rank][col], P - 2, P); M[rank] = [(x * inv) % P for x in M[rank]]
+        for r in range(m):
+            if r != rank and M[r][col] % P != 0:
+                ff = M[r][col]; M[r] = [(M[r][i] - ff * M[rank][i]) % P for i in range(nn)]
+        rank += 1
+        if rank == m:
+            break
+    return rank
+
+
+def dimension_audit(Mcx, npts=45, seed=11, g=None, ginv=None):
+    """The Trap-#15 dimension audit.  Returns dict with dim(gauge+conf), B1-control deficit (must be
+    0), and B3 deficit (the TT-residue dimension) -- cross-checked at two primes, off-slice points."""
+    import random
+    if g is None:
+        g = fs_metric()
+    if ginv is None:
+        ginv = fs_metric_inv(g)
+    phis = _potentials()
+    rng = random.Random(seed)
+
+    def rndr():
+        return Rational(rng.randint(-11, 11), rng.randint(1, 11))
+    pts = [{Z1: rndr(), Z2: rndr(), Z1B: rndr(), Z2B: rndr()} for _ in range(npts)]   # OFF-SLICE
+
+    def vec(tb):
+        out = []
+        for pp in pts:
+            for k in range(3):
+                for a in range(2):
+                    for b in range(2):
+                        e = cancel(tb[k][a, b].subs(pp))
+                        out.append(_tofrac(sp.re(e))); out.append(_tofrac(sp.im(e)))
+        return out
+    gauge = []
+    for nA, pA in phis:
+        for nB, pB in phis:
+            omh = [together(pA * dz(pB, 0)), together(pA * dz(pB, 1))]
+            gauge.append(delta_star(omh, [sp.Integer(0)] * 2, g, ginv, simp=together))
+            oma = [together(pA * dzb(pB, 0)), together(pA * dzb(pB, 1))]
+            gauge.append(delta_star([sp.Integer(0)] * 2, oma, g, ginv, simp=together))
+    conf = [conformal_block(together(pA * pB), g, simp=together) for nA, pA in phis for nB, pB in phis]
+    rows = [vec(t) for t in gauge + conf]
+    phi = cancel(phi_field(Mcx))
+    B1 = cov_hessian(phi, g, ginv, simp=together)
+    B3 = grad_bilinear(phi, simp=together)
+    b1v = vec(B1); b3v = vec(B3)
+    out = {"primes": _PRIMES_AUDIT, "npts": npts}
+    rS = [_modrank(rows, P) for P in _PRIMES_AUDIT]
+    rB1 = [_modrank(rows + [b1v], P) for P in _PRIMES_AUDIT]
+    rB3 = [_modrank(rows + [b3v], P) for P in _PRIMES_AUDIT]
+    out["dim_span"] = rS
+    out["b1_deficit"] = [rB1[i] - rS[i] for i in range(len(_PRIMES_AUDIT))]
+    out["b3_deficit"] = [rB3[i] - rS[i] for i in range(len(_PRIMES_AUDIT))]
+    return out
+
+
 # ============================================================================
 # GATE 3 -- the bilinear sector (B3, B6): THE VERDICT CENTER.
 # ============================================================================
@@ -1462,10 +1586,33 @@ def gate3_bilinears():
                   "B6 (canonical pi_{1/2}M tangent stress) = s_M(x)s_M = dphi_M(x)dphi_M COINCIDES with "
                   "B3 (reported transparently; same verdict object)", pin_ok)
 
+    # --- 3.type  ISOTYPIC TYPE: (2,0)+(0,2) blocks jointly gauge (=> NO anti-invariant lambda=32 TT);
+    #     the obstruction is the J-INVARIANT (1,1)-Hermitian sector = the Boucetta lambda=12 dim-8 TT. ---
+    _log("3.type localizing the obstruction: (2,0)+(0,2) blocks jointly gauge? ...")
+    c_pure, _ = _york_solve_blocks(B3, [0, 2], phi, g, ginv)
+    type_ok = c_pure and B3_tt        # pure-block gauge AND full inconsistent => (1,1) carries it
+    ok &= _report(f"3.type (2,0)+(0,2) jointly gauge [{c_pure}] while full B3 has TT [{B3_tt}] => the "
+                  "TT residue is the J-INVARIANT (1,1)-Hermitian sector = Boucetta lambda=12 dim-8 "
+                  "(NOT the anti-invariant lambda=32)", type_ok)
+
+    # --- 3.audit  THE DIMENSION AUDIT (Trap #15, MANDATORY for LIVE): exact rank deficit, off-slice,
+    #     two primes; B1 control deficit MUST be 0; B3 deficit = TT dim <= Boucetta multiplicity. ---
+    _log("3.audit dimension audit (off-slice, two primes; B1 control + B3 deficit) ...")
+    aud = dimension_audit(Msp, npts=45, g=g, ginv=ginv)
+    b1_def_ok = all(d == 0 for d in aud["b1_deficit"])
+    b3_def = aud["b3_deficit"]
+    b3_def_agree = (len(set(b3_def)) == 1)
+    b3_def_val = b3_def[0]
+    audit_ok = (b1_def_ok and b3_def_agree and 1 <= b3_def_val <= 8 and (b3_def_val > 0) == B3_tt)
+    ok &= _report(f"3.audit DIMENSION AUDIT: dim(gauge+conf)={aud['dim_span']}, B1-control deficit="
+                  f"{aud['b1_deficit']}(==0: {b1_def_ok}), B3 deficit={b3_def}(two primes agree: "
+                  f"{b3_def_agree}); TT dim={b3_def_val} (1<=dim<=8 Boucetta lambda=12 (1,1) "
+                  f"multiplicity, NOT exceeding => no under-spanning) [{audit_ok}]", audit_ok)
+
     print(f"\n  GATE 3 (bilinear sector): {'ALL PASS' if ok else 'FAIL'}")
-    print(f"  [VERDICT CENTER]: B3 (= B6) TT-residue present = {B3_tt} "
-          f"=> {'LIVE (a matter-sourced tensor mode exists)' if B3_tt else 'DEAD'}")
-    return ok, {"B3": B3_tt, "B6": B3_tt}
+    print(f"  [VERDICT CENTER]: B3 (= B6) TT-residue present = {B3_tt}, dim = {b3_def_val}, type = "
+          f"lambda=12 (1,1)-Hermitian => {'LIVE (a matter-sourced tensor mode exists)' if B3_tt else 'DEAD'}")
+    return ok, {"B3": B3_tt, "B6": B3_tt, "tt_dim": b3_def_val, "type": "lambda12_(1,1)_Hermitian"}
 
 
 # ============================================================================
