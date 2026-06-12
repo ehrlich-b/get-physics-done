@@ -837,30 +837,9 @@ def Rdot(blocks, g=None, ginv=None, R=None):
     return out20, out11, out02
 
 
-def lichnerowicz(blocks, g=None, ginv=None, Gam=None, GamB=None, R=None, Lambda=6):
-    """Delta_L h = nabla*nabla h + 2 Lambda h - 2 Rdot h  (on the Einstein bg Ric=Lambda g, so
-    Ric o h + h o Ric = 2 Lambda h).  Returns block-triple.  Matched-monomial; cliff-safe on the
-    EXPLICIT (numeric-coefficient) tensors {t_i, r}.  Lambda=6 (the cut)."""
-    if g is None:
-        g = fs_metric()
-    if ginv is None:
-        ginv = fs_metric_inv(g)
-    if Gam is None:
-        Gam = christoffel_hol(g, ginv)
-    if GamB is None:
-        GamB = _christoffel_antihol(g, ginv)
-    if R is None:
-        R = riemann_kahler(g, ginv, Gam)
-    rr = rough_laplacian(blocks, g, ginv, Gam, GamB)
-    rd = Rdot(blocks, g, ginv, R)
-    out = []
-    for k in range(3):
-        Bk = zeros(2, 2)
-        for a in range(2):
-            for b in range(2):
-                Bk[a, b] = cancel(rr[k][a, b] + 2 * Lambda * blocks[k][a, b] - 2 * rd[k][a, b])
-        out.append(Bk)
-    return out[0], out[1], out[2]
+# [v32.0-B] The duplicate `def lichnerowicz` that stood here (shadowed by the one below) is removed.
+# The surviving full-tensor Delta_L is below; its (2,0)/(0,2) ANTI-block path is UNTRUSTED (see its
+# docstring).  The VERDICT operator is lichnerowicz_11 (the validated (1,1) sector).
 
 
 def lichnerowicz_11(blocks, g=None, ginv=None, Gam=None, GamB=None, R=None, Lambda=6):
@@ -897,8 +876,13 @@ def lichnerowicz_11(blocks, g=None, ginv=None, Gam=None, GamB=None, R=None, Lamb
 def lichnerowicz(blocks, g=None, ginv=None, Gam=None, GamB=None, R=None, Lambda=6):
     """Delta_L h = nabla*nabla h + 2 Lambda h - 2 Rdot h  (on the Einstein bg Ric=Lambda g, so
     Ric o h + h o Ric = 2 Lambda h).  Returns the FULL block-triple.  Matched-monomial; cliff-safe on
-    the EXPLICIT (numeric-coefficient) tensors.  Lambda=6 (the cut).  (For the verdict eigenvalue use
-    lichnerowicz_11 -- the J-invariant (1,1) sector where the certified v31 multiplet lives.)"""
+    the EXPLICIT (numeric-coefficient) tensors.  Lambda=6 (the cut).
+    *** v32.0-B WARNING: the (2,0)/(0,2) ANTI-block path here is UNTRUSTED -- it returned a spurious
+    28/4 (not 32) on the anti blocks of the verdict residue r.  The full TT mode's eigenvalue is
+    lambda_L=32 on EVERY block (Boucetta Table V/VIII row 2 for the (1,1)-27 + Tables VI/VII row 1 for
+    the (2,0)/(0,2)-27s; degree-counting forces it); the anti-block 32 rests on the primary source +
+    degree counting, NOT on this code.  Use ONLY lichnerowicz_11 (validated, the (1,1) sector) for
+    verdict eigenvalues. ***"""
     if g is None:
         g = fs_metric()
     if ginv is None:

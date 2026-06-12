@@ -12,6 +12,13 @@ Exact over Q / Q(t); octonion engine + 3×3-complex cut rep (guard-locked); u = 
 > v33 ledger) are filled by the executor/verifier from the exact computation. **NOTHING here
 > prejudges the verdict.** §6 fixes only the *objects*, the *method*, and the *frozen criteria*.
 > Any verdict object not frozen at Gate 0 is a new run (STOP rule 3).
+>
+> **CORRECTION (v32.0-B, binding — read §7 first).** §1–6 PREDICTED the matter TT mode to be the
+> "λ=12 (1,1) dim-8 su(3)-adjoint" with `c(M) ∝ N(M)` (the d-symbol square). The exact computation +
+> three-path reconciliation REFUTE that multiplet-ID: the mode is a single **λ_L=32 eigentensor
+> straddling the triple-27** (Boucetta Table V/VIII row 2 + Tables VI/VII), direction `T₂₇[P27(M⊗M)]`
+> (the 27-channel, c₈=c₁=0), norm `(1/30)(TrM²)²`, ε=20. Wherever §1–6 say "λ=12 (1,1) dim-8 adjoint"
+> or "c∝N(M)", read the §7/§8 reconciled account and `92-VERDICT.md`. The METHOD in §5 stands.
 
 ---
 
@@ -302,112 +309,129 @@ strictly weaker upstream dictionary).
 
 ---
 
-## 7. Results — the closed form, the direction, the dictionary  *(executor)*
+## 7. Results — the closed form, the direction, the dictionary  *(RECONCILED v32.0-B)*
 
-**Verdict = LIVE** (the tensor sector's source data closes in canonical form). All exact over Q;
-driver `code/lichnerowicz_response.py` (Gate 0 6/6, Gate 1 6/6, the norm/direction/ε computations).
+> **RECONCILIATION (binding).** The §1–6 grounding PREDICTED a "λ=12 (1,1) dim-8 su(3)-adjoint"
+> multiplet with `c(M) ∝ N(M)` (the d-symbol square). The exact computation + the three-path
+> reconciliation (`v32-reconciliation-directive.md`; blog-side fetched Boucetta arXiv:0712.2830
+> directly) **REFUTE that prediction's multiplet-ID** and replace it with the straddle below. The
+> METHOD (cliff-free extraction, exact over Q, the York split, the norm-is-degree-4-invariant
+> argument) all stands; only the *which multiplet* and *which direction* move. See `92-VERDICT.md`.
+
+**Verdict = LIVE** (the tensor sector's source data closes in canonical form). All exact over Q.
 
 **The cliff-free extraction (V1) — the deferred v31 certificate, obtained.** The unique York TT
-residue `r` of `B3 = dφ_M⊗dφ_M` (`tr_g r = 0` AND `δr = 0`) is EXTRACTED EXPLICITLY by a
-matched-monomial York solve: the gauge+conformal basis `(tr_g, δ)` images are computed once as
-monomial-coefficient dicts over a common ρ⁷ (cached; conformal blocks via the analytic
-`tr_g(f·g)=4f`, `δ(f·g)_b=−∂_b f`), and the target is matched by an EXACT CRT modular solve (40-prime
-Gaussian elimination + rational reconstruction). NO full-basis Gram. **Point-evaluation is
-ill-conditioned** (its gauge coefficients explode to ≥186 bits and fail reconstruction; the
-matched-monomial route keeps small coefficients). `r` is exhibited nonzero with `tr_g r = 0`, `δr = 0`
-for sparse (s01), all 8 single generators, and dense generic matter — confirming v31's EXISTENCE
-cliff-free.
+residue `r` of `B3 = dφ_M⊗dφ_M` (`tr_g r = 0` AND `δr = 0`, ALL blocks) is extracted explicitly by a
+matched-monomial York solve over a common ρ⁷ + a CRT modular solve (NO full-basis Gram; point
+evaluation is ill-conditioned). `r` is exhibited nonzero (tr=0, δ=0) for s01, all 8 single
+generators, and dense generic matter — confirming v31's EXISTENCE cliff-free. **`r` carries nonzero
+(2,0) AND (0,2) blocks** (all 8 directions, reproduced orchestrator-side, exact over Q) — the residue
+STRADDLES all three Kähler sectors. (This refutes v31's "(2,0)+(0,2) jointly gauge ⇒ purely (1,1)"
+localization; v31's EXISTENCE verdict stands — see `91-AMENDMENT-v32.md`.)
 
-**The dim-8 multiplet (object (i) basis {t_a}).** The verdict object is the J-invariant
-(1,1)-Hermitian sector (v31: the (2,0)+(0,2) blocks are individually pure gauge); `t_a = r^{(1,1)}`.
-The single-generator residues span the **d-symbol image of single generators (rank 6)** — a genuine
-su(3) fact (for a single off-diagonal generator λ_a, the adjoint square N(λ_a) collapses into the
-Cartan). The **full dim-8 multiplet** is reached by GENERIC matter: the quadratic map M→N(M) is
-surjective onto the dim-8 adjoint, and `{N(M)}` for generic dense M has **rank 8** (verified). The
-multiplet is dim-8 (Boucetta Table VIII, v31); single generators probe a rank-6 slice (sufficient for
-the Schur scalar, which is a single eigenvalue because the multiplet is irreducible).
+**The mode (object (i)): a SINGLE λ_L=32 eigentensor in the triple-27.** `TT(B3)` spans:
+the **(1,1)-dim-27** at λ=32 (Boucetta Table V/VIII **row 2**, m=0: 4(m+2)(m+4)=32, dim (m+3)³=27,
+eigenspace φ∘δ*_h∘δ̄*_h(T^{0,0}_{2,2})) ⊕ the **(2,0)/(0,2)-dim-27s** at λ=32 (Tables VI/VII row 1).
+The matter bilinear lives in Sym²(8)=27⊕8⊕1; only the **27-channel** has a transverse home here, so
+**c₈ = c₁ = 0** (structural — the 8-channel's only homes are the λ=12 dim-8 primitive (Table row 1,
+NON-transverse) and the conformal trace tower). The forced closed form is
+**`TT(B3[M]) = T₂₇[P27(M⊗M)]`** (T₂₇ the fixed straddling equivariant map; ONE forced constant —
+the 32-eigenspace has three 27-copies, equivariance gives one scalar per copy, transversality of the
+total locks their ratio).
 
-**The direction c(M) ∝ N(M) — FAILS (a FINDING).** The named hypothesis (object (i)) was that the
-TT direction is the d-symbol square `N(M) = M² − ⅓Tr(M²)I`. **It is FALSE.** The clean test:
-`N(s01) = N(d1) = diag(1,1,0) − ⅔I` exactly, yet `r^{(1,1)}(s01) ≠ r^{(1,1)}(d1)`. So the TT tensor
-direction carries MORE M-information than N(M) — the full `dφ_M⊗dφ_M` gradient-bilinear structure
-(φ_{s01} and φ_{d1} are different λ₁ eigenfunctions), not merely the adjoint square. This refines
-object (i): the closed form `TT(B3) = Σ_a c_a t_a` EXISTS but `c(M)` is richer than the d-symbol
-square — the dictionary's first named nuance. (It does NOT touch the LIVE criterion, which is the
-norm.)
+**The single-rep fingerprints (T1/T2/T3; reproduced exact over Q on the driver):** T1
+`4(t_s01+t_a01+t_d1)+(t_s02+t_a02+t_s12+t_a12)=0`; T2 `t_d2=9(t_s01+t_a01+t_d1)`; T3 the
+single-generator residue Gram has rank 6 (the P27 single-generator image — NOT the d-symbol image:
+the §7-draft "rank-6 = d-symbol image" was a drift error; the d-symbol/8-channel image is rank 2).
+These force the direction to be the unique `P27(M⊗M)`.
 
-**The York dictionary (object (iv)) — closes EXACT.** `B3 = r + δ*ω + f·g` exact over Q
-(`B3 − r − δ*ω − f·g ≡ 0` block-for-block), with `(ω, f)` assembled in certified closed form from the
-gauge+conformal potentials; `r` is the explicit TT tensor (tr_g r = 0, δr = 0).
+**The direction c(M) ∝ N(M) — FAILS (real).** N(M)=M²−⅓Tr(M²)I is the **8-channel** of M⊗M, which is
+absent (c₈=0). `N(s01)=N(d1)` yet `r(s01)≠r(d1)` because the residue tracks the **27-channel**
+P27(M⊗M), not the 8-channel. The fingerprints are the certificate. (Not richer than N(M) — a
+DIFFERENT channel.) Object (i) COMPLETE.
 
-| object | result |
+**The York dictionary (object (iv)) — closes EXACT.** `B3 = r + δ*ω + f·g` exact over Q, `(ω,f)` in
+certified closed form; `r` the explicit TT tensor (tr_g r=0, δr=0).
+
+| object | result (reconciled) |
 |---|---|
-| (i) `TT(B3) = Σ_a c_a t_a` | residue exhibited (tr=0,δ=0,≠0); basis = (1,1)-Hermitian multiplet (single-gen rank-6, generic rank-8); **c(M) ∝ N(M) FAILS** (richer than the d-symbol square) |
-| (ii) `‖TT(B3)‖²` | **= (1/54)(TrM²)²** — FORCED κ=1/54, **detM absent** (the verdict center, §8) |
-| (iii) `ε` | **= λ_L − 2Λ = 32 − 12 = 20** ≠ 0, non-marginal (§8) |
+| (i) `TT(B3)` | a SINGLE λ_L=32 eigentensor straddling the triple-27 (row-2 (1,1)-27 ⊕ VI/VII (2,0)/(0,2)-27s); `= T₂₇[P27(M⊗M)]`, c₈=c₁=0; **c(M)∝N(M) FAILS** (27-channel, not the 8-channel d-symbol square) |
+| (ii) `‖TT(B3)‖²` | **= (1/30)(TrM²)²** — FORCED κ=1/30 (full mode), **detM absent**; forced 5:4 (1,1):anti split (1/54):(2/135) (§8) |
+| (iii) `ε` | **= λ_L − 2Λ = 32 − 12 = 20** (the whole mode; §8) |
 | (iv) `B3 = TT + δ*ω + f·g` | closes EXACT over Q; (ω,f) in closed form |
 
-`verdict(closes_3a=True, norm_forced=True, norm_needs_outside=None, schur_ok=True,
-contradicts_v31=False) = ('LIVE', ...)` — LIVE because (3a) the residue closes for all matter AND (3c)
-the norm closes with a FORCED exact constant (detM absent, no free function). The direction-N(M)
-failure (3b) is a documented finding, NOT a PARTIAL trigger.
+LIVE because (3a) the residue closes for all matter AND (3c) the norm closes with a FORCED exact
+constant (detM absent, no free function). The direction-N(M) failure (3b) is a documented finding,
+NOT a PARTIAL trigger (the LIVE criterion is the norm).
 
-## 8. The norm identity and the threshold number ε  *(executor)*
+## 8. The norm identity and the threshold number ε  *(RECONCILED v32.0-B)*
 
 **The norm identity (object (ii), the verdict center):**
 
-> **‖TT(B3)‖² = (1/54)·(TrM²)²**   — single FORCED rational κ = 1/54, **detM ABSENT**.
+> **‖TT(B3)‖² = (1/30)·(TrM²)²**   — single FORCED rational κ = 1/30 (the FULL TT mode), **detM ABSENT**,
+> with the forced block split **‖TT⁽¹¹⁾‖² : ‖TT_anti‖² = 5 : 4** = shares (1/54) : (2/135) of (TrM²)².
 
-Confirmed exact over Q across matters with VARIED detM:
+Reproduced exact over Q (`code/lichnerowicz_response_fingerprint.py`):
 
-| matter M | ‖TT(B3)‖² | (TrM²)² | detM | κ |
-|---|---|---|---|---|
-| s01 | 2/27 | 4 | 0 | **1/54** |
-| d1 | 2/27 | 4 | 0 | **1/54** |
-| d2 | 2/3 | 36 | **−2** | **1/54** |
-| a01 | 2/27 | 4 | 0 | **1/54** |
-| dense generic | 128/27 | 256 | **−7** | **1/54** |
+| matter M | ‖TT(B3)‖² (full) | ‖TT⁽¹¹⁾‖² | ‖TT_anti‖² | (TrM²)² | detM | κ_full |
+|---|---|---|---|---|---|---|
+| s01 | 2/15 | 2/27 | 8/135 | 4 | 0 | **1/30** |
+| a01 | 2/15 | 2/27 | 8/135 | 4 | 0 | **1/30** |
+| d1 | 2/15 | 2/27 | 8/135 | 4 | 0 | **1/30** |
+| d2 | — | — | — | 36 | **−2** | **1/30** (verifier) |
 
-κ = 1/54 is the SAME for matters with detM ≠ 0 (d2: −2; dense: −7), so **detM is ABSENT** — the norm
-does not depend on the cubic invariant (v27 cubic-blindness). This is forced by SU(3)-invariance +
-Cayley–Hamilton (`TrM⁴ = ½(TrM²)²`, `detM·TrM = 0` for traceless 3×3 ⇒ the only degree-4 invariant is
-(TrM²)²). **No fitted constant, no free function — the FORCED closed form that meets the v32 LIVE bar.**
-Method: `‖r^{(1,1)}‖² = l2_tensor((0,r^{(1,1)},0), same)` — ONE exact L² integral, NOT a Gram.
+(1/54 + 2/135 = 1/30 ✓; ratio 5:4 ✓.) The first-pass κ=1/54 was the **(1,1)-block share only** (5/9
+of the full mode) — read off `r[1]` with the other blocks zeroed, which is neither transverse nor the
+full mode (the executor's verdict-critical bug, caught by the verifier). The genuine matter-sourced TT
+mode is the FULL residue, κ_full = 1/30. **detM ABSENT** (same κ at detM=−2): forced by SU(3)
+invariance + Cayley–Hamilton (`TrM⁴=½(TrM²)²`, `detM·TrM=0` ⇒ the only degree-4 invariant of a
+traceless 3×3 is (TrM²)²). No fitted constant, no free function — the FORCED closed form meeting the
+v32 LIVE bar.
 
-**The threshold number ε (object (iii), the genuine sub-fork):**
+**The threshold number ε (object (iii)):**
 
-> **ε = λ_L − 2Λ = 32 − 12 = 20**   (λ_L = 32 the Δ_L^{(1,1)} Schur scalar; ε ≠ 0).
+> **ε = λ_L − 2Λ = 32 − 12 = 20**   (λ_L = 32 the eigenvalue of the WHOLE TT mode; ε ≠ 0, non-marginal).
 
-`Δ_L^{(1,1)} t_a = 32 t_a` for d1, d2, s01 (the Schur scalar, same constant — the multiplet is
-irreducible). So **ε = 20 ≠ 0: the λ=12 (1,1) multiplet is NON-marginal** under our certified
-convention.
+`λ_L = 32` is the Lichnerowicz eigenvalue on every block of `r`: the (1,1)-27 (Boucetta Table V/VIII
+row 2) and the (2,0)/(0,2)-27s (Tables VI/VII row 1) all sit at 4(m+2)(m+4)|_{m=0} = 32. **Degree
+counting forces it:** the anti content of `r` has coefficient bidegree (2,2), and the only Z-balanced
+anti space reachable is T^{0,2}_{2,0} (the 27 at 32); nothing higher (48, 60, …) is reachable. So
+`Δ_L r = 32 r` as a FULL tensor. (Both independent Δ_L implementations measured 32 on the (1,1) block
+r[1]; the anti-block 32 rests on the primary source + degree counting, NOT on the executor's
+full-tensor `lichnerowicz` anti path, which is a buggy dead-code path returning a spurious 28/4 —
+flagged untrusted, duplicate def removed.)
 
-**The trap-#16 tension, resolved factually and mechanically (NO convention picked).** The three
-statements — Besse 12.28 (`ker(Δ_L − 2Λ)|_TT` = infinitesimal Einstein deformations), Besse 12.98
-(CP^n Koiso-RIGID), Boucetta's (1,1) TT multiplet "at" λ=12 = 2Λ — are reconciled by recognizing that
-the LICHNEROWICZ eigenvalue `λ_L = 32` is the SCALAR Laplacian eigenvalue `λ₁ = 12` of the carrier
-PLUS the Weitzenböck shift; they are NOT the same operator. Since `λ_L = 32 ≠ 12 = 2Λ`,
-`ker(Δ_L − 2Λ)|_TT = ∅` here — fully CONSISTENT with Koiso rigidity (CP² has no infinitesimal Einstein
-deformations exactly because the (1,1) multiplet sits a finite gap ε = 20 above the marginal
-threshold). Boucetta's "λ=12" labels the scalar carrier's threshold, not the Lichnerowicz eigenvalue.
-The Δ_L convention was pinned independently (the rough-Laplacian sign pin +12 on λ₁ / +32 on λ₂; the
-full Kähler Weitzenböck cross-checked by R̊(g)=Ric=6g and Δ_L(g)=0), so ε = 20 stands as computed.
+**The trap-#16 tension dissolves cleanly: there is NO TT mode at λ=12 at all.** The two dim-8s at 12
+(Boucetta Table V/VIII row 1 primitive; Table VIII row 3 m=1 conformal) are NON-transverse / trace
+modes, so `ker(Δ_L − 2Λ)|_TT = ∅` and first-order Koiso rigidity of CP² is intact — no tension for
+EITHER convention. (The first-pass "scalar carrier + Weitzenböck shift = 32" gloss is RETRACTED; the
+verifier's "λ_L=12, ε=0, 2nd-order rigidity" read Boucetta **row 1** — the wrong row.) ε = 20 is
+canonical Δ_L-STIFFNESS data of the frozen deformation complex — NOT a dynamical response (priced
+only, §9, trap #19).
 
-ε = 20 is canonical Δ_L-STIFFNESS data of the frozen geometry's deformation complex — NOT a dynamical
-response (the Fredholm/sourced-response equation is priced only, §9, trap #19).
+**Boucetta re-map (the failure mode named).** Table VIII (S^{1,1} on P²C) at n=2: **row 1** = the λ=12
+dim-8 primitive (NON-transverse); **row 2** (m=0) = the λ=32 **dim-27** δ*_h δ̄*_h multiplet (THE
+(1,1) part of our mode); **row 3** = the conformal `φ·g` tower (λ=4m(m+2)). Tables VI/VII **row 1** =
+the (2,0)/(0,2) anti-27s at λ=32. Koiso clean (no TT at 12). **v31 AND the v32 first-verifier both
+stopped at row 1** as "the" TT multiplet — that was the shared failure mode; the residue actually
+lives at row 2 + VI/VII.
+
+**Drift instances recorded (process honesty).** (1) Gate-0's "single-generator Gram rank-6 = the
+d-symbol image" is FALSE — rank 6 is the P27-image rank of single generators; the d-symbol/8-channel
+image is rank 2. (2) The first-pass verdict redefined the verdict object as the (1,1)-block-only norm
+(κ=1/54), drifting from the FULL TT mode (κ=1/30); corrected here.
 
 ## 9. v33 ledger (Gate 5, priced only, NO claims)
 
-**(a) The lapse / 00 assembly.** Consumes ε = 20, the direction c(M) (now known to be richer than the
-d-symbol square), and the v26/v27 scalar sector. Needs the 4d-slice EMBEDDING of CP² into the bulk
-(the h₂(C_u) Lorentzian slice). PRICE: a new milestone — build the slice embedding, pull the (1,1) TT
-+ scalar data through the lapse decomposition. NOT run. (The direction-N(M) finding means the assembly
-must use the genuine c(M).)
+**(a) The lapse / 00 assembly.** Consumes ε = 20, the direction map `T₂₇[P27(M⊗M)]` (the 27-channel,
+NOT the d-symbol square), and the v26/v27 scalar sector. Needs the 4d-slice EMBEDDING of CP² into the
+bulk (the h₂(C_u) Lorentzian slice). PRICE: a new milestone — build the slice embedding, pull the full
+straddling TT mode + scalar data through the lapse decomposition. NOT run.
 
-**(b) The OP² lift.** OP² = h₃(O) is Spin(9), NOT Kähler — there is NO (1,1)/(2,0)+(0,2) bigraduation,
-so the dim-8 (1,1) multiplet story does NOT transfer. PRICE: redo the Boucetta-class eigentensor
-bookkeeping for Spin(9) isotypic types; the analogue of λ_L=32 / ε=20 / κ=1/54 differs. Do NOT assume
-the CP² result lifts. NOT run.
+**(b) The OP² lift.** OP² = h₃(O) is Spin(9), NOT Kähler — there is NO (1,1)/(2,0)+(0,2)
+bigraduation, so the triple-27 straddle story does NOT transfer. PRICE: redo the Boucetta-class
+eigentensor bookkeeping for Spin(9) isotypic types; the analogue of λ_L=32 / ε=20 / κ=1/30 differs. Do
+NOT assume the CP² result lifts. NOT run.
 
 **(c) The Fredholm / response READING of ε.** The equation `(Δ_L − 2Λ)h = source` is a Block-C-shaped
 IMPORT (where five gravity routes died: v17/v18/v19/v20/v21). NAMED and FENCED (trap #19): "response"
@@ -419,7 +443,9 @@ fact — a v33+ import. NOT run.
 
 ### References (orchestrator-verified, for the no-web executor)
 - M. Boucetta, *Spectra and symmetric eigentensors of the Lichnerowicz Laplacian on P^n(C)*,
-  arXiv:0712.2830 (Tables VI–VIII at n=2). The dimension anchor; the (1,1) λ=12 dim-8 multiplet.
+  arXiv:0712.2830 (Tables V–VIII + Lemma 3.4 at n=2). The dimension anchor. The matter TT mode is the
+  λ=32 **triple-27** (Table V/VIII **row 2** (1,1)-27 ⊕ Tables VI/VII row 1 (2,0)/(0,2)-27s); the λ=12
+  dim-8 (row 1) is NON-transverse (Koiso clean).
 - A. L. Besse, *Einstein Manifolds*, §1.143 (the Lichnerowicz Laplacian Δ_L), §4.57 (the orthogonal
   York split), §12.28 (infinitesimal Einstein deformations = ker(Δ_L−2Λ)|_TT), §12.98ff (Koiso
   rigidity of CP^n — Trap #16).

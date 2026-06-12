@@ -1,5 +1,16 @@
 # Phase 92 (v32.0-candidate) — GATE 1 SUMMARY: Controls (zero evidential weight)
 
+> **CORRECTION (v32.0-B, binding).** This first-pass summary predates the three-path reconciliation
+> (`v32-reconciliation-directive.md`; Boucetta arXiv:0712.2830 fetched directly). The matter TT mode
+> is NOT the "λ=12 (1,1) dim-8 su(3)-adjoint", and the verdict norm is NOT κ=1/54. RECONCILED: a single
+> **λ_L=32 eigentensor straddling the triple-27** (Boucetta Table V/VIII row 2 (1,1)-27 ⊕ Tables VI/VII
+> (2,0)/(0,2)-27s), norm **‖TT(B3)‖²=(1/30)(TrM²)²** (full mode; 1/54 was the (1,1)-block share, forced
+> 5:4 split), **ε=20**, direction **T₂₇[P27(M⊗M)]** (the 27-channel; c₈=c₁=0; c∝N(M) FAILS as a
+> wrong-channel claim, not "richer"); Koiso clean (no TT at λ=12). Wherever this file says
+> "dim-8/(1,1)/adjoint", "κ=1/54", "c∝N richer", "rank-6=d-symbol image", or "Weitzenböck shift", read
+> `92-VERDICT.md` + `92-tensor-dictionary-RESEARCH.md` §7/§8 instead.
+
+
 **Driver:** `python3 -u code/lichnerowicz_response.py g1` → **6/6 PASS** (~250s, exact over Q).
 
 Gate 1 runs the controls (zero evidential weight, all must behave): the non-hardwired `verdict()`
