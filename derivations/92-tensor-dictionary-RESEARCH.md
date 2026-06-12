@@ -304,15 +304,116 @@ strictly weaker upstream dictionary).
 
 ## 7. Results — the closed form, the direction, the dictionary  *(executor)*
 
-*(filled from the exact computation)*
+**Verdict = LIVE** (the tensor sector's source data closes in canonical form). All exact over Q;
+driver `code/lichnerowicz_response.py` (Gate 0 6/6, Gate 1 6/6, the norm/direction/ε computations).
+
+**The cliff-free extraction (V1) — the deferred v31 certificate, obtained.** The unique York TT
+residue `r` of `B3 = dφ_M⊗dφ_M` (`tr_g r = 0` AND `δr = 0`) is EXTRACTED EXPLICITLY by a
+matched-monomial York solve: the gauge+conformal basis `(tr_g, δ)` images are computed once as
+monomial-coefficient dicts over a common ρ⁷ (cached; conformal blocks via the analytic
+`tr_g(f·g)=4f`, `δ(f·g)_b=−∂_b f`), and the target is matched by an EXACT CRT modular solve (40-prime
+Gaussian elimination + rational reconstruction). NO full-basis Gram. **Point-evaluation is
+ill-conditioned** (its gauge coefficients explode to ≥186 bits and fail reconstruction; the
+matched-monomial route keeps small coefficients). `r` is exhibited nonzero with `tr_g r = 0`, `δr = 0`
+for sparse (s01), all 8 single generators, and dense generic matter — confirming v31's EXISTENCE
+cliff-free.
+
+**The dim-8 multiplet (object (i) basis {t_a}).** The verdict object is the J-invariant
+(1,1)-Hermitian sector (v31: the (2,0)+(0,2) blocks are individually pure gauge); `t_a = r^{(1,1)}`.
+The single-generator residues span the **d-symbol image of single generators (rank 6)** — a genuine
+su(3) fact (for a single off-diagonal generator λ_a, the adjoint square N(λ_a) collapses into the
+Cartan). The **full dim-8 multiplet** is reached by GENERIC matter: the quadratic map M→N(M) is
+surjective onto the dim-8 adjoint, and `{N(M)}` for generic dense M has **rank 8** (verified). The
+multiplet is dim-8 (Boucetta Table VIII, v31); single generators probe a rank-6 slice (sufficient for
+the Schur scalar, which is a single eigenvalue because the multiplet is irreducible).
+
+**The direction c(M) ∝ N(M) — FAILS (a FINDING).** The named hypothesis (object (i)) was that the
+TT direction is the d-symbol square `N(M) = M² − ⅓Tr(M²)I`. **It is FALSE.** The clean test:
+`N(s01) = N(d1) = diag(1,1,0) − ⅔I` exactly, yet `r^{(1,1)}(s01) ≠ r^{(1,1)}(d1)`. So the TT tensor
+direction carries MORE M-information than N(M) — the full `dφ_M⊗dφ_M` gradient-bilinear structure
+(φ_{s01} and φ_{d1} are different λ₁ eigenfunctions), not merely the adjoint square. This refines
+object (i): the closed form `TT(B3) = Σ_a c_a t_a` EXISTS but `c(M)` is richer than the d-symbol
+square — the dictionary's first named nuance. (It does NOT touch the LIVE criterion, which is the
+norm.)
+
+**The York dictionary (object (iv)) — closes EXACT.** `B3 = r + δ*ω + f·g` exact over Q
+(`B3 − r − δ*ω − f·g ≡ 0` block-for-block), with `(ω, f)` assembled in certified closed form from the
+gauge+conformal potentials; `r` is the explicit TT tensor (tr_g r = 0, δr = 0).
+
+| object | result |
+|---|---|
+| (i) `TT(B3) = Σ_a c_a t_a` | residue exhibited (tr=0,δ=0,≠0); basis = (1,1)-Hermitian multiplet (single-gen rank-6, generic rank-8); **c(M) ∝ N(M) FAILS** (richer than the d-symbol square) |
+| (ii) `‖TT(B3)‖²` | **= (1/54)(TrM²)²** — FORCED κ=1/54, **detM absent** (the verdict center, §8) |
+| (iii) `ε` | **= λ_L − 2Λ = 32 − 12 = 20** ≠ 0, non-marginal (§8) |
+| (iv) `B3 = TT + δ*ω + f·g` | closes EXACT over Q; (ω,f) in closed form |
+
+`verdict(closes_3a=True, norm_forced=True, norm_needs_outside=None, schur_ok=True,
+contradicts_v31=False) = ('LIVE', ...)` — LIVE because (3a) the residue closes for all matter AND (3c)
+the norm closes with a FORCED exact constant (detM absent, no free function). The direction-N(M)
+failure (3b) is a documented finding, NOT a PARTIAL trigger.
 
 ## 8. The norm identity and the threshold number ε  *(executor)*
 
-*(filled from the exact computation)*
+**The norm identity (object (ii), the verdict center):**
 
-## 9. v33 ledger (Gate 5, priced only, NO claims)  *(executor)*
+> **‖TT(B3)‖² = (1/54)·(TrM²)²**   — single FORCED rational κ = 1/54, **detM ABSENT**.
 
-*(filled from the exact computation)*
+Confirmed exact over Q across matters with VARIED detM:
+
+| matter M | ‖TT(B3)‖² | (TrM²)² | detM | κ |
+|---|---|---|---|---|
+| s01 | 2/27 | 4 | 0 | **1/54** |
+| d1 | 2/27 | 4 | 0 | **1/54** |
+| d2 | 2/3 | 36 | **−2** | **1/54** |
+| a01 | 2/27 | 4 | 0 | **1/54** |
+| dense generic | 128/27 | 256 | **−7** | **1/54** |
+
+κ = 1/54 is the SAME for matters with detM ≠ 0 (d2: −2; dense: −7), so **detM is ABSENT** — the norm
+does not depend on the cubic invariant (v27 cubic-blindness). This is forced by SU(3)-invariance +
+Cayley–Hamilton (`TrM⁴ = ½(TrM²)²`, `detM·TrM = 0` for traceless 3×3 ⇒ the only degree-4 invariant is
+(TrM²)²). **No fitted constant, no free function — the FORCED closed form that meets the v32 LIVE bar.**
+Method: `‖r^{(1,1)}‖² = l2_tensor((0,r^{(1,1)},0), same)` — ONE exact L² integral, NOT a Gram.
+
+**The threshold number ε (object (iii), the genuine sub-fork):**
+
+> **ε = λ_L − 2Λ = 32 − 12 = 20**   (λ_L = 32 the Δ_L^{(1,1)} Schur scalar; ε ≠ 0).
+
+`Δ_L^{(1,1)} t_a = 32 t_a` for d1, d2, s01 (the Schur scalar, same constant — the multiplet is
+irreducible). So **ε = 20 ≠ 0: the λ=12 (1,1) multiplet is NON-marginal** under our certified
+convention.
+
+**The trap-#16 tension, resolved factually and mechanically (NO convention picked).** The three
+statements — Besse 12.28 (`ker(Δ_L − 2Λ)|_TT` = infinitesimal Einstein deformations), Besse 12.98
+(CP^n Koiso-RIGID), Boucetta's (1,1) TT multiplet "at" λ=12 = 2Λ — are reconciled by recognizing that
+the LICHNEROWICZ eigenvalue `λ_L = 32` is the SCALAR Laplacian eigenvalue `λ₁ = 12` of the carrier
+PLUS the Weitzenböck shift; they are NOT the same operator. Since `λ_L = 32 ≠ 12 = 2Λ`,
+`ker(Δ_L − 2Λ)|_TT = ∅` here — fully CONSISTENT with Koiso rigidity (CP² has no infinitesimal Einstein
+deformations exactly because the (1,1) multiplet sits a finite gap ε = 20 above the marginal
+threshold). Boucetta's "λ=12" labels the scalar carrier's threshold, not the Lichnerowicz eigenvalue.
+The Δ_L convention was pinned independently (the rough-Laplacian sign pin +12 on λ₁ / +32 on λ₂; the
+full Kähler Weitzenböck cross-checked by R̊(g)=Ric=6g and Δ_L(g)=0), so ε = 20 stands as computed.
+
+ε = 20 is canonical Δ_L-STIFFNESS data of the frozen geometry's deformation complex — NOT a dynamical
+response (the Fredholm/sourced-response equation is priced only, §9, trap #19).
+
+## 9. v33 ledger (Gate 5, priced only, NO claims)
+
+**(a) The lapse / 00 assembly.** Consumes ε = 20, the direction c(M) (now known to be richer than the
+d-symbol square), and the v26/v27 scalar sector. Needs the 4d-slice EMBEDDING of CP² into the bulk
+(the h₂(C_u) Lorentzian slice). PRICE: a new milestone — build the slice embedding, pull the (1,1) TT
++ scalar data through the lapse decomposition. NOT run. (The direction-N(M) finding means the assembly
+must use the genuine c(M).)
+
+**(b) The OP² lift.** OP² = h₃(O) is Spin(9), NOT Kähler — there is NO (1,1)/(2,0)+(0,2) bigraduation,
+so the dim-8 (1,1) multiplet story does NOT transfer. PRICE: redo the Boucetta-class eigentensor
+bookkeeping for Spin(9) isotypic types; the analogue of λ_L=32 / ε=20 / κ=1/54 differs. Do NOT assume
+the CP² result lifts. NOT run.
+
+**(c) The Fredholm / response READING of ε.** The equation `(Δ_L − 2Λ)h = source` is a Block-C-shaped
+IMPORT (where five gravity routes died: v17/v18/v19/v20/v21). NAMED and FENCED (trap #19): "response"
+appears only in this pricing. Since ε = 20 ≠ 0 the stiffness reading is available in principle, but
+turning it into a sourced response EQUATION `(Δ_L−2Λ)h = κT` is Block-C dynamics, NOT a v32 dictionary
+fact — a v33+ import. NOT run.
 
 ---
 
