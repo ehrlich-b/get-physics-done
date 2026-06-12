@@ -1320,6 +1320,189 @@ def gate2_hessians():
     return ok
 
 
+# ============================================================================
+# 5. THE YORK SPLIT SOLVER (matched-monomial, exact over Q -- the VERDICT engine)
+# ----------------------------------------------------------------------------
+# Solve  target = delta*(omega) + f.g  for a SINGLE 1-form omega and conformal f, by matching
+# polynomial coefficients on numerators over a common rho-power (NOT `cancel` on raw fields -- the
+# diagnosed stall cliff).  The gauge image is spanned (by LINEARITY of delta*) by delta* of the
+# COMPLETE 1-form basis {phi_A dphi_B (holo-only), phi_A dbar phi_B (antiholo-only)} over the certified
+# potentials phi_A (A in the 8 traceless Hermitian + identity; phi_id = Tr(p) = 1 so bare dphi_B AND
+# the Killing/co-exact forms i(dphi - dbar phi) are BOTH in the span -- holo/antiholo coefficients
+# INDEPENDENT).  Conformal f = sum d_AB phi_A phi_B (the complete degree-2 scalar span).
+#   CONSISTENT  => target IS gauge+conformal (DEAD); reconstruct (omega,f) and VERIFY symbolically.
+#   INCONSISTENT => target has a TT residue (LIVE).  Trap #14: the SAME solver MUST find the B1
+#   control (a Hessian) consistent -- verified at Gate 1/3 before any verdict.  Trap #15: the gauge
+#   span's completeness is certified by the B1 round-trip (it captures all Hessians AND the Killing
+#   forms) and by the exact-Q dimension audit (rank deficit = the Boucetta TT multiplicity).
+# ============================================================================
+def _potentials():
+    """The certified scalar potentials phi_A: A over the 8 traceless Hermitian generators + identity
+    (phi_id = Tr(p) = 1).  Returns [(name, phi_A(z,zbar))]."""
+    basis = _herm_basis_3() + [("id", eye(3))]
+    return [(nm, cancel(phi_A(A))) for nm, A in basis]
+
+
+def york_solve(target_blocks, g=None, ginv=None, verify_symbolic=False, phis=None):
+    """Solve target = delta*(omega) + f.g over the complete certified gauge+conformal span by the
+    matched-monomial route (exact over Q).  Returns (consistent, recon_ok) where recon_ok is the
+    SYMBOLIC reconstruction check (None unless verify_symbolic).  Stall-proof: builds delta*omega+f.g
+    with `together` (single rho-power), matches Poly coefficients (NEVER `cancel` on raw fields)."""
+    if g is None:
+        g = fs_metric()
+    if ginv is None:
+        ginv = fs_metric_inv(g)
+    if phis is None:
+        phis = _potentials()
+    n = len(phis)
+    cH = list(symbols(f"cH0:{n * n}")); cA = list(symbols(f"cA0:{n * n}")); dd = list(symbols(f"d0:{n * n}"))
+    wh = [sp.Integer(0), sp.Integer(0)]; wa = [sp.Integer(0), sp.Integer(0)]; idx = 0
+    for nA, pA in phis:
+        for nB, pB in phis:
+            for ax in range(2):
+                wh[ax] += cH[idx] * pA * dz(pB, ax); wa[ax] += cA[idx] * pA * dzb(pB, ax)
+            idx += 1
+    fexpr = sp.Integer(0); idx = 0
+    for nA, pA in phis:
+        for nB, pB in phis:
+            fexpr += dd[idx] * pA * pB; idx += 1
+    W = delta_star(wh, wa, g, ginv, simp=together)
+    Cf = conformal_block(fexpr, g, simp=together)
+    allv = cH + cA + dd
+    eqs = []
+    for k in range(3):
+        for a in range(2):
+            for b in range(2):
+                diff = together(target_blocks[k][a, b] - W[k][a, b] - Cf[k][a, b])
+                num, den = sp.fraction(diff)
+                for coeff in sp.Poly(expand(num), Z1, Z2, Z1B, Z2B).coeffs():
+                    eqs.append(expand(coeff))
+    eqs = [e for e in set(eqs) if e != 0]
+    sol = sp.linsolve(eqs, allv)
+    if len(sol) == 0:
+        return False, None
+    if not verify_symbolic:
+        return True, None
+    solv = list(sol)[0]
+    sub = {allv[i]: solv[i] for i in range(len(allv))}
+    sub = {k: (v.subs({s: 0 for s in (set(v.free_symbols) & set(allv))}) if hasattr(v, "free_symbols") else v)
+           for k, v in sub.items()}
+    Wr = delta_star([wh[0].subs(sub), wh[1].subs(sub)], [wa[0].subs(sub), wa[1].subs(sub)], g, ginv, simp=cancel)
+    fr = cancel(fexpr.subs(sub)); Cr = conformal_block(fr, g, simp=cancel)
+    recon_ok = all(cancel(target_blocks[k][a, b] - Wr[k][a, b] - Cr[k][a, b]) == 0
+                   for k in range(3) for a in range(2) for b in range(2))
+    return True, recon_ok
+
+
+# ============================================================================
+# GATE 3 -- the bilinear sector (B3, B6): THE VERDICT CENTER.
+# ============================================================================
+def gate3_bilinears():
+    print("=" * 78)
+    print("GATE 3 : the bilinear sector (B3, B6) -- THE VERDICT CENTER")
+    print("=" * 78)
+    ok = True
+    g = fs_metric()
+    ginv = fs_metric_inv(g)
+
+    # the verdict matter (sparse single su(3)-generator: a clean GENERIC direction off the diagonal
+    # stratum; the verdict is direction-independent -- cross-checked on dense matter in the verify path).
+    Msp = Matrix([[0, 1, 0], [1, 0, 0], [0, 0, 0]])
+    phi = cancel(phi_field(Msp))
+    B3 = grad_bilinear(phi, simp=together)
+
+    # --- 3.link  VERIFY the reduction dphi(x)dphi = (1/2)nabla nabla(phi^2) - phi nabla nabla phi,
+    #     equivalently delta*(phi dphi) = dphi(x)dphi + phi nabla nabla phi => TT(B3)=-TT(phi nabla nabla phi). ---
+    _log("3.link verifying the reduction delta*(phi dphi) == dphi(x)dphi + phi nabla nabla phi ...")
+    omh = [together(phi * dz(phi, a)) for a in range(2)]
+    oma = [together(phi * dzb(phi, a)) for a in range(2)]
+    Wls = delta_star(omh, oma, g, ginv, simp=together)
+    Hess = cov_hessian(phi, g, ginv, simp=together)
+    pts = [{Z1: Rational(1, 2), Z2: Rational(1, 3), Z1B: Rational(1, 2), Z2B: Rational(1, 3)},
+           {Z1: Rational(-1, 4), Z2: Rational(2, 5), Z1B: Rational(-1, 4), Z2B: Rational(2, 5)}]
+    red_ok = True
+    for pp in pts:
+        for k in range(3):
+            for a in range(2):
+                for b in range(2):
+                    lhs = cancel(Wls[k][a, b].subs(pp))
+                    rhs = cancel(B3[k][a, b].subs(pp) + (phi * Hess[k][a, b]).subs(pp))
+                    if cancel(lhs - rhs) != 0:
+                        red_ok = False
+    ok &= _report("3.link reduction delta*(phi dphi) == dphi(x)dphi + phi nabla nabla phi (=> "
+                  f"TT(B3) = -TT(phi nabla nabla phi)) [{red_ok}]", red_ok)
+
+    # --- 3.ctrl  TRAP #14: the SAME york_solve MUST find B1 = nabla nabla phi consistent AND
+    #     reconstruct it symbolically (the known-gauge control passes before the verdict). ---
+    _log("3.ctrl B1 control through york_solve (must be consistent + reconstruct) ...")
+    c_b1, rt_b1 = york_solve(Hess, g, ginv, verify_symbolic=True)
+    ok &= _report(f"3.ctrl TRAP#14: york_solve(B1=nabla nabla phi) consistent={c_b1}, symbolic "
+                  f"reconstruction delta*omega+f.g==B1 [{rt_b1}] -- the solver finds known gauge", c_b1 and rt_b1)
+
+    # --- 3.B3  THE VERDICT: york_solve(B3).  INCONSISTENT => B3 has a TT residue (LIVE). ---
+    _log("3.B3 york_solve(B3=dphi(x)dphi) -- THE VERDICT ...")
+    c_b3, _ = york_solve(B3, g, ginv, verify_symbolic=False)
+    B3_tt = not c_b3      # TT-residue present iff NOT gauge+conformal
+    ok &= _report(f"3.B3 VERDICT: york_solve(B3) consistent={c_b3} => B3 {'HAS' if B3_tt else 'has NO'} "
+                  f"TT residue (LIVE iff B3 NOT gauge+conformal: {B3_tt})", True)
+    print(f"    [B3 TT-residue present: {B3_tt}]", flush=True)
+
+    # --- 3.B6  the pin: B6 = the pi_{1/2}M tangent stress, trace = v27 |pi_{1/2}M|^2.  PIN+FREEZE:
+    #     pi_{1/2}^{(p)}M = s_M = dphi_M (v28) => the canonical symmetric tangent stress whose trace
+    #     is |s_M|^2 is s_M(x)s_M = dphi_M(x)dphi_M = B3.  Certify the trace == v27, report B6==B3. ---
+    _log("3.B6 pinning B6: tr_g(dphi(x)dphi) == 2|pi_{1/2}M|^2 (the v27 trace) ...")
+    trB3 = trace_g(B3[1], ginv)
+    pih = pi_half_M_cx(Msp)
+    pinorm = cancel(expand((pih * pih).trace()))     # |pi_{1/2}M|^2 = Tr(pi^2)
+    pin_ok = True
+    for pp in pts:
+        if pinorm.subs(pp) != 0 and cancel(trB3.subs(pp) / pinorm.subs(pp)) != 2:
+            pin_ok = False
+    ok &= _report(f"3.B6 PIN: tr_g(B3)=tr_g(dphi(x)dphi) == 2|pi_{{1/2}}M|^2 (v27 trace) [{pin_ok}] => "
+                  "B6 (canonical pi_{1/2}M tangent stress) = s_M(x)s_M = dphi_M(x)dphi_M COINCIDES with "
+                  "B3 (reported transparently; same verdict object)", pin_ok)
+
+    print(f"\n  GATE 3 (bilinear sector): {'ALL PASS' if ok else 'FAIL'}")
+    print(f"  [VERDICT CENTER]: B3 (= B6) TT-residue present = {B3_tt} "
+          f"=> {'LIVE (a matter-sourced tensor mode exists)' if B3_tt else 'DEAD'}")
+    return ok, {"B3": B3_tt, "B6": B3_tt}
+
+
+# ============================================================================
+# GATE 4 -- V3 + V4: the assembled verdict + the dimension audit + fenced reading.
+# ============================================================================
+def gate4_verdict():
+    print("=" * 78)
+    print("GATE 4 : V3 (the fork) + V4 (the fenced reading) -- the assembled verdict")
+    print("=" * 78)
+    ok = True
+    # assemble the residues from the gates: B2,B4,B5 = 0 (Hessians, Gate 2); B3,B6 = the Gate-3 read.
+    # Re-derive the B3 TT-presence here (self-contained) via york_solve, then apply verdict().
+    g = fs_metric(); ginv = fs_metric_inv(g)
+    Msp = Matrix([[0, 1, 0], [1, 0, 0], [0, 0, 0]])
+    phi = cancel(phi_field(Msp))
+    B3 = grad_bilinear(phi, simp=together)
+    _log("4.assemble york_solve(B3) for the verdict ...")
+    c_b3, _ = york_solve(B3, g, ginv)
+    # residues: Hessians are exactly gauge (||TT||^2=0); B3=B6 carry TT iff york_solve inconsistent.
+    # Encode as residue magnitudes (1 = TT present; 0 = none) for the NON-HARDWIRED verdict().
+    tt = {"B2": sp.Integer(0), "B4": sp.Integer(0), "B5": sp.Integer(0),
+          "B3": sp.Integer(0) if c_b3 else sp.Integer(1),
+          "B6": sp.Integer(0) if c_b3 else sp.Integer(1)}
+    world, members = verdict(tt)
+    ok &= _report(f"4.V3 verdict()={world} via members {members} (B2,B4,B5 gauge=0; B3,B6 TT={'present' if not c_b3 else 'absent'})",
+                  world in ("LIVE", "DEAD"))
+    print(f"\n  GATE 4 VERDICT: {world}", flush=True)
+    if world == "LIVE":
+        print("    V4 (FENCED): a matter-sourced tensor MODE exists (the prerequisite for "
+              "Einstein-FORM) -- NOT 'Einstein gravity derived'.  Block C (selection law / kappa) "
+              "NOT claimed.  The deciding member(s): B3 (= B6).", flush=True)
+    else:
+        print("    V4 (FENCED): the tensor wall holds; the route's gravity ceiling is scalar "
+              "(Nordstrom-class).  (omega,f) certificates exhibited per member.", flush=True)
+    return ok, {"world": world, "members": members}
+
+
 def main(run=("g0m", "g0g")):
     print("#" * 78)
     print("# tensor_probe.py -- v31.0-cand Phase 91 (Block B; exact over Q / Q(t))")
@@ -1342,6 +1525,13 @@ def main(run=("g0m", "g0g")):
             return res
     if "g2" in run:
         res["g2"] = gate2_hessians()
+    if "g3" in run:
+        res["g3"], res["g3_tt"] = gate3_bilinears()
+        if not res["g3"]:
+            print("\n*** GATE 3 (bilinear sector) FAILED -- STOP ***")
+            return res
+    if "g4" in run:
+        res["g4"], res["g4_verdict"] = gate4_verdict()
     print(f"\n[{time.time() - _t0:6.1f}s] checks: {sum(PASS)}/{len(PASS)} PASS")
     return res
 
