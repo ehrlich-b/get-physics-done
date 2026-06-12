@@ -223,13 +223,15 @@ def christoffel_hol(g=None, ginv=None):
     return Gam
 
 
-def cov_hessian(f, g=None, ginv=None, Gam=None):
+def cov_hessian(f, g=None, ginv=None, Gam=None, simp=together):
     """Covariant Hessian of scalar f as a symmetric 2-tensor on CP^2, returned as the
     three complex blocks (H20, H11, H02) each a 2x2 sympy Matrix:
       H20[a,b] = H_{ab}        (holomorphic (2,0) part)
       H11[a,b] = H_{a bbar}    (mixed (1,1) part)
       H02[a,b] = H_{abar bbar} (antiholomorphic (0,2) part)
-    Exact rational in (z,zbar)."""
+    Rational in (z,zbar).  simp: per-entry simplifier (default `together`: fast, single rho-power
+    denominator -- l2_scalar fully reduces at integration; pass `cancel` for exact-form checks).
+    NB: `cancel` on rational FIELDS (rho denominators) is the perf cliff; `together` avoids it."""
     if g is None:
         g = fs_metric()
     if ginv is None:
@@ -243,17 +245,17 @@ def cov_hessian(f, g=None, ginv=None, Gam=None):
     for a in range(2):
         for b in range(2):
             # (1,1): d_a d_bbar f
-            H11[a, b] = cancel(dz(dzb(f, b), a))
+            H11[a, b] = simp(dz(dzb(f, b), a))
             # (2,0): d_a d_b f - Gamma^c_{ab} d_c f
             t = dz(dz(f, b), a)
             for c in range(2):
                 t -= Gam[c][a][b] * dz(f, c)
-            H20[a, b] = cancel(t)
+            H20[a, b] = simp(t)
             # (0,2): d_abar d_bbar f - Gamma^cbar_{abar bbar} d_cbar f
             t2 = dzb(dzb(f, b), a)
             for c in range(2):
                 t2 -= GamB[c][a][b] * dzb(f, c)
-            H02[a, b] = cancel(t2)
+            H02[a, b] = simp(t2)
     return H20, H11, H02
 
 
@@ -348,6 +350,79 @@ def ricci_tensor(g=None):
         for b in range(2):
             R[a, b] = cancel(-dz(dzb(logdet, b), a))
     return R
+
+
+# ============================================================================
+# 2c. THE GAUGE OPERATOR delta* AND THE YORK SPLIT SOLVER (V1, lemma grade)
+# ----------------------------------------------------------------------------
+# A 1-form omega has components omega_a (holomorphic, dual to dz^a) and omega_abar
+# (antiholomorphic, dual to dzbar^a).  The symmetric gradient (Lie/gauge part):
+#   (delta* omega)_{mu nu} = (1/2)(nabla_mu omega_nu + nabla_nu omega_mu).
+# Kahler complex blocks (mixed Christoffels vanish; Gamma^c_{ab} holomorphic):
+#   (2,0):  W20_{ab} = (1/2)(d_a omega_b + d_b omega_a) - Gamma^c_{ab} omega_c
+#   (1,1):  W11_{a bbar} = (1/2)(d_a omega_bbar + d_bbar omega_a)
+#   (0,2):  W02 = conj(W20) on the reality slice.
+# For omega = d phi (omega_a = d_a phi, omega_abar = d_abar phi) this equals the covariant
+# Hessian cov_hessian(phi) EXACTLY (the Matsushima identity nabla nabla phi = delta*(d phi)).
+# The conformal block is f.g (f a function): blocks (0, f*g_{a bbar}, 0).
+# ============================================================================
+def delta_star(om_hol, om_ahol, g=None, ginv=None, Gam=None, simp=together):
+    """delta*(omega) for a 1-form with holomorphic components om_hol[a]=omega_a and
+    antiholomorphic om_ahol[a]=omega_abar.  Returns (W20,W11,W02) 2x2 blocks (rational).
+    simp: per-entry simplifier (default `together`; pass `cancel` for exact-form checks)."""
+    if g is None:
+        g = fs_metric()
+    if ginv is None:
+        ginv = fs_metric_inv(g)
+    if Gam is None:
+        Gam = christoffel_hol(g, ginv)
+    GamB = _christoffel_antihol(g, ginv)
+    W20 = zeros(2, 2); W11 = zeros(2, 2); W02 = zeros(2, 2)
+    for a in range(2):
+        for b in range(2):
+            # (2,0): (1/2)(d_a om_b + d_b om_a) - Gamma^c_{ab} om_c
+            t = Rational(1, 2) * (dz(om_hol[b], a) + dz(om_hol[a], b))
+            for c in range(2):
+                t -= Gam[c][a][b] * om_hol[c]
+            W20[a, b] = simp(t)
+            # (1,1): (1/2)(d_a om_bbar + d_bbar om_a)
+            W11[a, b] = simp(Rational(1, 2) * (dz(om_ahol[b], a) + dzb(om_hol[a], b)))
+            # (0,2): (1/2)(d_abar om_bbar + d_bbar om_abar) - GammaB^c om_cbar
+            t2 = Rational(1, 2) * (dzb(om_ahol[b], a) + dzb(om_ahol[a], b))
+            for c in range(2):
+                t2 -= GamB[c][a][b] * om_ahol[c]
+            W02[a, b] = simp(t2)
+    return W20, W11, W02
+
+
+def delta_star_of_dphi(phi, g=None, ginv=None, Gam=None, simp=together):
+    """delta*(d phi) -- equals cov_hessian(phi) (Matsushima); a convenience wrapper."""
+    om_hol = [dz(phi, a) for a in range(2)]
+    om_ahol = [dzb(phi, a) for a in range(2)]
+    return delta_star(om_hol, om_ahol, g, ginv, Gam, simp)
+
+
+def conformal_block(f, g=None):
+    """The conformal symmetric 2-tensor f.g: blocks (0, f*g_{a bbar}, 0)."""
+    if g is None:
+        g = fs_metric()
+    Z = zeros(2, 2)
+    W11 = (f * g).applyfunc(cancel)
+    return Z, W11, Z
+
+
+def traceless_part(hb, g=None, ginv=None):
+    """Subtract the conformal trace: h0 = h - (1/n)(tr_g h) g, n=4 (real dim).  Returns the
+    block-triple of h0 (its (1,1) block gets the -(1/4) tr_g h * g shift; pure blocks unchanged)."""
+    if g is None:
+        g = fs_metric()
+    if ginv is None:
+        ginv = fs_metric_inv(g)
+    H20, H11, H02 = hb
+    tr = trace_g(H11, ginv)               # tr_g h (uses only the (1,1) block)
+    n = 4
+    H11_0 = (H11 - Rational(1, n) * tr * g).applyfunc(cancel)
+    return H20, H11_0, H02
 
 
 # ============================================================================
@@ -472,22 +547,125 @@ def _rho_power_of(den):
 
 
 def l2_scalar(f):
-    """EXACT L^2 inner-product integral of a scalar f(z,zbar) over CP^2 (FS), up to the
-    universal constant pi^2 (cancels in all ratios).  Expand f = sum c_{A,B} z^A zbar^B / rho^k;
-    only matched powers A==B survive the U(2)-angular average; sum c_{a,b} I(a,b; k+3).
-    Returns an exact Rational."""
-    f = together(cancel(f))
+    """EXACT L^2 inner-product integral of a scalar f(z,zbar) over CP^2 (FS), up to pi^2.
+    Strategy (avoids the giant `expand`/`cancel` cliff on field products): f = num/rho^k with num
+    a polynomial in (z1,z2,z1b,z2b).  The U(2) phase-average keeps only matched monomials
+    z1^a z2^b z1b^a z2b^b -> s1^a s2^b (s=|z|^2); the radial integral of s1^a s2^b/rho^K is the
+    Dirichlet/beta _mono_integral(a,b,K).  We extract the matched-coefficient polynomial in (s1,s2)
+    by an EXACT roots-of-unity phase average on each block product separately (linearity), then
+    radial-integrate.  Each step is a substitution (no full expand of the giant product)."""
+    f = together(f)
     num, den = sp.fraction(f)
-    k, const = _rho_power_of(den)
+    k, const = _rho_power_of(sp.expand(den))
     K = k + 3
-    numpoly = sp.expand(num / const)
+    num = num / const
+    # phase-average num -> the matched part as a polynomial Pmatch(s1,s2), then sum
+    # coeff * _mono_integral(a,b,K).  The phase average kills any z1^p z1b^q with p!=q.
+    Pmatch = _phase_average(num)             # returns poly in S1,S2 (= |z1|^2,|z2|^2)
     total = sp.Integer(0)
-    poly = sp.Poly(numpoly, Z1, Z2, Z1B, Z2B)
-    for monom, coeff in poly.terms():
-        a1, a2, b1, b2 = monom            # powers of z1,z2,z1b,z2b
-        if a1 == b1 and a2 == b2:         # matched powers survive U(2)-averaging
-            total += coeff * _mono_integral(a1, a2, K)
+    poly = sp.Poly(Pmatch, _S1, _S2)
+    for (a, b), coeff in poly.terms():
+        total += coeff * _mono_integral(a, b, K)
     return cancel(total)
+
+
+_S1, _S2 = symbols("S1 S2", nonnegative=True)
+
+
+def l2_scalar_pts(f, Khint=None, degbound=None):
+    """EXACT L^2 integral of a scalar f = num/rho^K over CP^2, computed by EXACT
+    roots-of-unity phase-averaging + rational-radius interpolation (NO symbolic expand of the
+    numerator -- the field-tensor-friendly path).  f is a rational function in (z,zbar) with a
+    pure rho-power denominator.  Returns an exact Rational.
+
+    Method: the phase-average P(s1,s2) (matched part) is a polynomial in s=(|z1|^2,|z2|^2) of
+    degree <= degbound; we evaluate P at a grid of rational (s1,s2) by averaging f over a grid of
+    roots-of-unity phases (exact cyclotomic sums collapse to rationals for matched monomials), fit
+    the polynomial coefficients by an exact linear solve, then radial-integrate via _mono_integral.
+    """
+    f = together(f)
+    num, den = sp.fraction(f)
+    k, const = _rho_power_of(sp.expand(den))
+    K = k + 3
+    num = num / const
+    # degree bound of the numerator polynomial in each of z1,z2 (and conjugates): need #phases
+    P = sp.Poly(sp.expand(num), Z1, Z2, Z1B, Z2B) if degbound is None else None
+    # use a safe degree bound: total degree in z1 (=in z1b for matched) etc.
+    if degbound is None:
+        d1 = max([t[0] for t in P.monoms()] + [t[2] for t in P.monoms()] + [0])
+        d2 = max([t[1] for t in P.monoms()] + [t[3] for t in P.monoms()] + [0])
+    else:
+        d1, d2 = degbound
+    # phase average at fixed radii (r1,r2): average over N1 x N2 roots of unity (N>d to resolve).
+    N1 = d1 + 1
+    N2 = d2 + 1
+    fl = sp.lambdify((Z1, Z2, Z1B, Z2B), num, modules="sympy")  # exact via sympy
+    # matched part as function of (s1,s2)=(r1^2,r2^2); fit polynomial of degree (d1//2,d2//2) in s
+    ms1 = d1 // 2
+    ms2 = d2 // 2
+    # sample s-grid (rational): (ms1+1)x(ms2+1) points
+    s1pts = [Rational(i + 1, ms1 + 2) for i in range(ms1 + 1)]
+    s2pts = [Rational(j + 1, ms2 + 2) for j in range(ms2 + 1)]
+
+    def phase_avg(s1v, s2v):
+        # average num over N1 x N2 roots of unity for z1,z2 at radii sqrt(s1),sqrt(s2)
+        r1 = sp.sqrt(s1v); r2 = sp.sqrt(s2v)
+        acc = sp.Integer(0)
+        for p in range(N1):
+            w1 = sp.exp(2 * sp.pi * I * p / N1)
+            for q in range(N2):
+                w2 = sp.exp(2 * sp.pi * I * q / N2)
+                z1v = r1 * w1; z2v = r2 * w2
+                acc += fl(z1v, z2v, sp.conjugate(z1v), sp.conjugate(z2v))
+        return sp.nsimplify(sp.simplify(acc / (N1 * N2)))
+
+    # build the (ms1+1)(ms2+1) linear system for the s-polynomial coefficients
+    rows = []; rhs = []
+    coeff_idx = [(a, b) for a in range(ms1 + 1) for b in range(ms2 + 1)]
+    for s1v in s1pts:
+        for s2v in s2pts:
+            rows.append([s1v ** a * s2v ** b for (a, b) in coeff_idx])
+            rhs.append(phase_avg(s1v, s2v))
+    Am = Matrix(rows); bvec = Matrix(rhs)
+    coeffs = Am.solve(bvec)
+    total = sp.Integer(0)
+    for idx, (a, b) in enumerate(coeff_idx):
+        total += coeffs[idx] * _mono_integral(a, b, K)
+    return cancel(total)
+
+
+def _phase_average(num):
+    """Return the U(2)-phase-averaged matched part of a polynomial num(z1,z2,z1b,z2b) as a
+    polynomial in S1=|z1|^2, S2=|z2|^2 (exact).  Method: substitute z_a = w_a (a phase) and
+    z_abar = sbar_a/w_a with s_a=z_a z_abar, then the matched part is the w1^0 w2^0 coefficient,
+    which equals num with z_a z_abar -> S_a on matched monomials and 0 on unmatched.  We compute
+    it by the substitution z1b->S1/z1, z2b->S2/z2 and taking the (z1^0 z2^0) Laurent coefficient.
+    To avoid full expansion of huge products we operate on num already partially factored."""
+    e = num.subs({Z1B: _S1 / Z1, Z2B: _S2 / Z2})
+    e = sp.together(e)
+    enum, eden = sp.fraction(e)
+    # eden is a monomial z1^p z2^q (from the S/z substitution); the matched (z1^0 z2^0) part of
+    # enum/eden = coeff of z1^p z2^q in enum (as a polynomial in z1,z2 with S-coefficients).
+    enum = sp.expand(enum)
+    pz = sp.Poly(eden, Z1, Z2)
+    if len(pz.terms()) != 1:
+        # denominator not a pure monomial -> fall back to direct matched extraction
+        return _phase_average_direct(num)
+    (dp, dq), dc = pz.terms()[0]
+    P = sp.Poly(enum, Z1, Z2)
+    matched = P.coeff_monomial(Z1 ** dp * Z2 ** dq) / dc
+    return sp.expand(matched)
+
+
+def _phase_average_direct(num):
+    """Fallback: expand and keep matched monomials directly (used only if the substitution
+    denominator is not a monomial)."""
+    total = sp.Integer(0)
+    poly = sp.Poly(sp.expand(num), Z1, Z2, Z1B, Z2B)
+    for (a1, a2, b1, b2), coeff in poly.terms():
+        if a1 == b1 and a2 == b2:
+            total += coeff * _S1 ** a1 * _S2 ** a2
+    return sp.expand(total)
 
 
 # ----------------------------------------------------------------------------
@@ -512,10 +690,11 @@ def l2_scalar(f):
 # + numerically on two tensors, their cross term, and symmetry at two points (earlier
 # wrong factor/symmetrization/transpose caught here -- see SUMMARY 'tensor inner product').
 # ----------------------------------------------------------------------------
-def tensor_dot_point(hb, hpb, ginv=None):
+def tensor_dot_point(hb, hpb, ginv=None, simp=cancel):
     """Pointwise <h, h'> for two symmetric 2-tensors given as block-triples (H20,H11,H02).
     Uses g^{a bbar} = ginv[b,a] (transpose of fs_metric_inv).  Returns a scalar (rational in
-    z,zbar); real for real tensors on the reality slice."""
+    z,zbar); real for real tensors on the reality slice.  simp default `cancel` (good for numeric
+    metrics); pass simp=sympify/together for FIELD tensors (l2_scalar reduces at integration)."""
     if ginv is None:
         ginv = fs_metric_inv()
     H20, H11, H02 = hb
@@ -530,13 +709,53 @@ def tensor_dot_point(hb, hpb, ginv=None):
                     s11 += gu(a, d) * gu(c, b) * H11[a, b] * P11[c, d]
                     t += gu(a, c) * gu(b, d) * H20[a, b] * P02[c, d]      # h(2,0).h'(0,2)
                     t += gu(c, a) * gu(d, b) * H02[a, b] * P20[c, d]      # h(0,2).h'(2,0)
-    return cancel(2 * s11 + t)
+    return simp(2 * s11 + t)
 
 
 def l2_tensor(hb, hpb, ginv=None):
     """EXACT L^2 inner product of two symmetric 2-tensor FIELDS over CP^2 (FS), up to pi^2.
-    = integral_CP2 <h(z), h'(z)> dV_FS."""
-    return l2_scalar(tensor_dot_point(hb, hpb, ginv))
+    = integral_CP2 <h(z), h'(z)> dV_FS.  The 64 metric-contraction terms are individually
+    phase-averaged to S=(|z|^2)-polynomials (linear, fast: each term is a small product), brought
+    to a COMMON rho-power Kmax, summed, and radial-integrated ONCE.  Individual terms can have a
+    divergent radial integral (g^{a bbar} polynomial) but the COMBINED matched S-polynomial at
+    Kmax is convergent (the tensor norm is a bounded function) -- so we sum the matched S-polys
+    BEFORE integrating.  No giant expand of the full product; no general GCD."""
+    if ginv is None:
+        ginv = fs_metric_inv()
+    H20, H11, H02 = hb
+    P20, P11, P02 = hpb
+    gu = lambda a, b: ginv[b, a]          # g^{a bbar}
+    # build the list of contraction terms (each a single product of a few rational factors)
+    terms = []
+    for a in range(2):
+        for b in range(2):
+            for c in range(2):
+                for d in range(2):
+                    terms.append(2 * gu(a, d) * gu(c, b) * H11[a, b] * P11[c, d])
+                    terms.append(gu(a, c) * gu(b, d) * H20[a, b] * P02[c, d])
+                    terms.append(gu(c, a) * gu(d, b) * H02[a, b] * P20[c, d])
+    # phase-average each term -> (S-poly, K=k+3); collect, lift to common Kmax, sum, integrate.
+    rho_s = 1 + _S1 + _S2                  # rho in S-variables (the radial 1+|z|^2)
+    spolys = []; Ks = []
+    for tm in terms:
+        if tm == 0:
+            continue
+        tm = together(tm)
+        n, dd = sp.fraction(tm)
+        k, cst = _rho_power_of(sp.expand(dd))
+        sp_match = _phase_average(n / cst)
+        spolys.append(sp_match); Ks.append(k + 3)
+    if not spolys:
+        return sp.Integer(0)
+    Kmax = max(Ks)
+    Stot = sp.Integer(0)
+    for spm, Kt in zip(spolys, Ks):
+        Stot += spm * rho_s ** (Kmax - Kt)
+    Stot = sp.expand(Stot)
+    total = sp.Integer(0)
+    for (a, b), coeff in sp.Poly(Stot, _S1, _S2).terms():
+        total += coeff * _mono_integral(a, b, Kmax)
+    return cancel(total)
 
 
 # ============================================================================
