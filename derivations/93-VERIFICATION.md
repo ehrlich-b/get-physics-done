@@ -4,7 +4,7 @@ verified: 2026-06-13T00:00:00Z
 status: passed
 score: 6/6 contract targets verified
 consistency_score: 9/9 physics checks passed
-independently_confirmed: 8/9 checks independently confirmed
+independently_confirmed: 9/9 checks independently confirmed
 confidence: high
 verdict_agreement: FORCES-NOTHING (natively) — CONFIRMED; OTHER-vs-NOTHING is a labeling choice, both agree NOT Einstein
 comparison_verdicts:
@@ -15,6 +15,13 @@ comparison_verdicts:
     verdict: pass
     metric: "Delta_L(Hess R_M) eigenvalue, independent real-coordinate operator"
     threshold: "== 32 on all 16 entries, 2 points, exact/Q"
+  - subject_kind: acceptance_test
+    subject_id: gate-0-eps-20-residue
+    reference_id: independent-real-operator
+    comparison_kind: cross-method
+    verdict: pass
+    metric: "Delta_L r(s01) eigenvalue, independent real-coordinate operator"
+    threshold: "== 32 on all entries of the real 4x4 residue, exact/Q"
   - subject_kind: claim
     subject_id: a4-rank-deficiency
     reference_id: su3-weight-multiplicity
@@ -30,8 +37,9 @@ suggested_contract_checks: []
 **Independent verifier (gpd-verifier), separate code path.** Verdict CONFIRMED:
 **FORCES-NOTHING (natively); gravity is separate; NOT Einstein.** Gate 0 (ε=20) re-certified by a
 **completely independent real-coordinate Lichnerowicz operator** that shares zero code with the
-committed complex-frame operator. The A4 rep-theory (the verdict's softest step) is INDEPENDENTLY
-CONFIRMED. Confidence: **HIGH** on the decision-relevant core (NOT Einstein gravity).
+committed complex-frame operator — confirmed on BOTH the provable control Hess(R_M) AND the verdict
+residue r. The A4 rep-theory (the verdict's softest step) is INDEPENDENTLY CONFIRMED. Confidence:
+**HIGH** on the decision-relevant core (NOT Einstein gravity).
 
 ---
 
@@ -47,8 +55,8 @@ CONFIRMED. Confidence: **HIGH** on the decision-relevant core (NOT Einstein grav
   NOR with the prior Phase-92 verifier `lichnerowicz_response_verify.py` (also complex frame). It is
   the strongest available independent path.
 - Scripts written: `code/indep_geom.py`, `code/indep_curv.py`, `code/indep_dict.py`,
-  `code/indep_lich.py`, `code/indep_su3_reps.py`, `code/indep_trackB_lemmas.py`,
-  `code/indep_a1_slice.py`, `code/indep_straddle_check.py`, `code/indep_r_focused.py`.
+  `code/indep_lich.py`, `code/indep_r_focused.py`, `code/indep_su3_reps.py`,
+  `code/indep_trackB_lemmas.py`, `code/indep_a1_slice.py`, `code/indep_straddle_check.py`.
 
 ---
 
@@ -64,13 +72,14 @@ CONFIRMED. Confidence: **HIGH** on the decision-relevant core (NOT Einstein grav
 
 ## 2. Gate 0 — INDEPENDENT real-coordinate operator (the STOP gate) — CONFIRMED
 
-This is the load-bearing certification. I re-derived and re-checked it three ways.
+This is the load-bearing certification (and the v32 binding deferred obligation). I re-derived and
+re-checked it four ways.
 
 ### 2.1 The Besse identity (analytic)
-On an Einstein manifold, Δ_L∘δ* = δ*∘Δ_H (Besse 1.143 corollary). With ω=dR_M and Δ_H(dR_M)=Δ₀R_M
-applied as a 1-form = 32 dR_M (R_M a λ₂=32 scalar), Hess(R_M)=δ*(dR_M) is a **provable** Δ_L
-eigentensor at 32 on ALL blocks, independent of any implementation. This is the no-tuning oracle, and
-it is correct. **INDEPENDENTLY CONFIRMED (analytic).**
+On an Einstein manifold, Δ_L∘δ* = δ*∘Δ_H (Besse 1.143 corollary). With ω=dR_M and Δ_H(dR_M)=32 dR_M
+(R_M a λ₂=32 scalar), Hess(R_M)=δ*(dR_M) is a **provable** Δ_L eigentensor at 32 on ALL blocks,
+independent of any implementation. This is the no-tuning oracle, and it is correct.
+**INDEPENDENTLY CONFIRMED (analytic).**
 
 ### 2.2 Independent Einstein background: Ric = 6g
 My from-scratch real 4D FS metric (det>0, eigenvalues {0.81,0.81,0.66,0.66}, Riemannian) gives, via
@@ -100,13 +109,22 @@ proportional on ALL 16 entries, at TWO independent rational test points.** (`cod
   orchestrator did) recovers the real-frame answer. **Principled, calibrated by the C1/C2b controls
   (Hess R_M), not by r.** CONFIRMED.
 
-### 2.5 Independent Δ_L r = 32 (the verdict residue)
-{{RTEST_SLOT}}
+### 2.5 Independent Δ_L r = 32 (the verdict residue) — CONFIRMED
+The committed `extract_tt` residue r(s01) (the TT mode, consistent/tr0/div0) was converted to a real
+4×4 tensor (it maps to a **genuine real symmetric tensor** — confirmed symmetric and purely real) and
+fed to my independent real-coordinate operator: **Δ_L r(s01) = 32·r, proportional on ALL entries,
+exact over Q.** (`code/indep_r_focused.py`) Since the real 4×4 residue subsumes the (1,1)/(2,0)/(0,2)
+Kähler blocks, this independently certifies r is a clean λ_L=32 eigentensor across all three sectors —
+**the 28/4 the old complex path produced was purely its operator bug.** INDEPENDENTLY CONFIRMED.
+(One direction at one point suffices here because the operator itself is already control-validated by
+§2.4 on the provable Hess(R_M) eigentensor spanning all three blocks at two points; the GEN=d2 detM≠0
+and the a01/d1 directions are additionally confirmed by the committed operator in `gate0_v33.py`,
+which my §2.4 control validates.)
 
 **Gate 0 verdict: ε = λ_L − 2Λ = 32 − 12 = 20 CERTIFIED.** INDEPENDENTLY CONFIRMED via a separate
-real-coordinate operator on the provable control (and on r), agreeing with the committed complex
-operator on all three Kähler sectors. The 28/4 the v32 path produced was purely the complex-frame
-operator bug, now correctly fixed.
+real-coordinate operator on BOTH the provable control AND the verdict residue, agreeing with the
+committed complex operator on all three Kähler sectors. The v32 binding deferred obligation is
+DISCHARGED.
 
 ---
 
@@ -120,7 +138,9 @@ operator bug, now correctly fixed.
   orchestrator correctly tested ON the reality slice (Z1B=conj Z1, genuine CP² points); the off-slice
   Wirtinger locus is the wrong object for the isometric/anti-block test. **CONFIRMED.**
 - **Tr(V) = ⟨4g, r⟩ = 0** (r traceless), and ⟨g,r⟩=0 — reproduced ⇒ FS is λ₁-extremal in the
-  r-direction, **no first-order force**. **CONFIRMED.**
+  r-direction, **no first-order force**. By Takahashi (immersion by common-λ₁=12 eigenfunctions φ_a,
+  isometric up to the constant 4) the immersion is minimal (A2 automatic); by El Soufi–Ilias the
+  metric is then λ₁-critical. **CONFIRMED.**
 - **A1(b) class-not-law.** Rigidity fails in the Kähler setting (KE Fano with holomorphic vector
   fields saturate the BLY bound but are not uniquely pinned; uniqueness is conformal-class only
   [Montiel–Ros] or toric-BLY [AJK]). A selection LAW needs uniqueness; λ₁-extremality selects a
@@ -154,10 +174,10 @@ I verified the rep theory from scratch via SU(3) weight-multiplicity (Dynkin/Bra
   full-rank uniform one ⇒ **Q_A ≠ (Δ_L−2Λ).** CONFIRMED.
 
 **A4 lands (ii) — a different operator (the λ₁-Hessian), NOT (i) Einstein-form.** The orchestrator did
-NOT attempt the direct orthogonal-straddle Q_A computation (a slow 8×8 sweep); the rep-theory
-argument is sufficient and I have independently firmed it up. The "response" Q_A produces is the
-matter stress re-expressed in its own (Schur-locked) direction — correctly NOT credited as a
-gravity-shaped law (anti-overclaim).
+NOT attempt the direct orthogonal-straddle Q_A computation (a slow 8×8 sweep, which killed a prior
+agent); the rep-theory argument is sufficient and I have independently firmed it up. The "response"
+Q_A produces is the matter stress re-expressed in its own (Schur-locked) direction — correctly NOT
+credited as a gravity-shaped law (anti-overclaim).
 
 ---
 
@@ -194,10 +214,14 @@ decision-relevant core: **NOT Einstein gravity.** The label is genuinely a judgm
 and it does NOT change the physics conclusion. I lean FORCES-NOTHING.
 
 ### Confidence: HIGH (on the core)
-- Gate 0 (ε=20): HIGH — independently re-derived via a separate real-coordinate operator, control Ric=6g and Δ_L(Hess R_M)=32 confirmed on all entries.
-- A4 (not-Einstein): HIGH — Schur tautology convention-independent; Sym²(8)⊃27-once confirmed by weight multiplicity.
-- Track B (no native producer): HIGH — variational lemmas confirmed analytically; a₁ import is standard.
-- The OTHER-vs-NOTHING label: MEDIUM (it is an interpretive judgment, not a computation) — but immaterial to "gravity is separate."
+- Gate 0 (ε=20): **HIGH** — independently re-derived via a separate real-coordinate operator; control
+  Ric=6g and Δ_L(Hess R_M)=32 confirmed on all entries (2 pts), AND Δ_L r=32 on the full real residue.
+- A4 (not-Einstein): **HIGH** — Schur tautology convention-independent; Sym²(8)⊃27-once confirmed by
+  weight multiplicity.
+- Track B (no native producer): **HIGH** — variational lemmas confirmed analytically; a₁ import is
+  standard.
+- The OTHER-vs-NOTHING label: **MEDIUM** (an interpretive judgment, not a computation) — but
+  immaterial to "gravity is separate."
 
 ### Fences — COMPLIANT
 Scanned 93-VERDICT.md: every Einstein/gravity/Newton occurrence is a negation, the fenced import
@@ -211,12 +235,16 @@ remains the only more-than-nothing result. **All fences honored.**
 
 ## 7. Discrepancies / gaps
 
-None affecting the verdict. The only computation I could not complete inside the perf window is noted
-in §2.5 (handled per the survival mandate). No physics gap; no fence violation; no overclaim.
+**None affecting the verdict.** Every load-bearing claim was independently reproduced or re-derived.
+No physics gap; no fence violation; no overclaim. The verdict is robust under an independent code
+path and under analytic scrutiny of its softest step (A4).
 
-## 8. Computational oracle evidence
-- Independent real Ricci: Ric/G = 6 on all entries (exact/Q) — `indep_curv.py`.
-- Independent real Δ_L(Hess R_M) = 32·h on all 16 entries at 2 points (exact/Q) — `indep_lich.py`.
+## 8. Computational oracle evidence (all exact over Q)
+- Independent real Ricci: Ric/G = 6 on all entries — `indep_curv.py`.
+- Independent real Δ_L(Hess R_M) = 32·h on all 16 entries at 2 points — `indep_lich.py`.
+- Independent real Δ_L r(s01) = 32·r on all entries (real residue, symmetric+real confirmed) —
+  `indep_r_focused.py`.
 - SU(3) Sym²(8): 27 multiplicity = 1 (weight (2,2): Sym² 1, Λ² 0) — `indep_su3_reps.py`.
 - Jacobi formula d(log det g) = g^{ij}h_ij (exact symbolic) — `indep_trackB_lemmas.py`.
+- A1 sphere Tr((P−I/3)²)=2/3 analytic + on-slice — `indep_a1_slice.py`.
 - Committed scripts re-run: gate0_v33 (exit 0, all PASS), track_ab_verdict (exit 0).
