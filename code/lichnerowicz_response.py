@@ -679,11 +679,17 @@ def _nabla(blocks, e, ebar, g=None, ginv=None, Gam=None, GamB=None, simp=togethe
 
 
 def rough_laplacian(blocks, g=None, ginv=None, Gam=None, GamB=None):
-    """nabla*nabla h = - g^{mu nu} nabla_mu nabla_nu h, the POSITIVE (geometer's) rough Laplacian.
-    In the Kahler complex frame g^{mu nu} nabla_mu nabla_nu = 2 g^{a bbar} nabla_a nabla_bbar (the
-    mixed contraction; pure g^{ab}=g^{abar bbar}=0).  So nabla*nabla h = -2 g^{a bbar} nabla_a
-    nabla_bbar h.  We compute nabla_bbar h (rank 3), then nabla_a of THAT, contract with g^{a bbar},
-    times -2.  Returns the block-triple (H20,H11,H02) of nabla*nabla h.  Matched-monomial."""
+    """nabla*nabla h = - g^{mu nu} nabla_mu nabla_nu h, the POSITIVE (geometer's) rough Laplacian,
+    as the SYMMETRIC TRACE of the second covariant derivative (RESEARCH s1.3, BUG-1 fix):
+        nabla*nabla T = -( g^{a bbar} nabla_a nabla_bbar  +  g^{abar b} nabla_abar nabla_b ) T
+    BOTH orderings appear (the nonzero inverse-metric components are g^{a bbar} and its conjugate
+    g^{abar b}; coefficient -1 each, NOT -2 on one).  On a SCALAR the two orderings commute, so the
+    old -2 g^{a bbar} d_a d_bbar agreed (and the +12/+32 sign-pin passed) -- but on a TENSOR they
+    differ by the curvature commutator, which acts with OPPOSITE sign on holo vs antiholo indices,
+    so the doubled-single-ordering operator was NOT conjugate-symmetric (gave nabla*nabla=24 on
+    (2,0) but 0 on (0,2) for the Hess(R_M) control).  Restoring both orderings makes the (2,0) and
+    (0,2) outputs EQUAL (as they must for a real tensor).  Returns the block-triple (H20,H11,H02)
+    of nabla*nabla h.  Matched-monomial (per-entry `cancel` reduction)."""
     if g is None:
         g = fs_metric()
     if ginv is None:
@@ -692,33 +698,21 @@ def rough_laplacian(blocks, g=None, ginv=None, Gam=None, GamB=None):
         Gam = christoffel_hol(g, ginv)
     if GamB is None:
         GamB = _christoffel_antihol(g, ginv)
-    gu = lambda a, b: ginv[b, a]          # g^{a bbar} = ginv[b,a]
-    # We need nabla_a (nabla_bbar T)_{mu nu}.  nabla_bbar T is a rank-3 tensor with an extra LOWER
-    # antiholomorphic index bbar; nabla_a then differentiates it AND connects all three lower
-    # indices (the bbar index is barred -> nabla_a connection on it is 0; mu,nu connected if unbarred).
-    # Build per fixed bbar the 4x4 (nabla_bbar T), then nabla_a it.
-    out20 = zeros(2, 2)
-    out11 = zeros(2, 2)
-    out02 = zeros(2, 2)
-    # second covariant derivative S_{mu nu; a bbar} = nabla_a nabla_bbar T_{mu nu}
-    # accumulate the contraction sum_{a,bbar} g^{a bbar} S_{mu nu; a bbar}
-    # First derivative blocks indexed by the antiholomorphic slot b (b in 0..1 -> index bbar):
-    # per-entry `cancel` reduction (the blow-up control: keeps each rho-rational entry at lowest
-    # terms; `together` alone accumulates giant numerators on the 2nd covariant derivative).
+    bar = lambda i: i >= 2
+    ix = lambda i: i % 2
+
+    # ---- L1 = g^{a bbar} nabla_a (nabla_bbar T) :  inner antiholo nabla_bbar, outer holo nabla_a ----
+    # nabla_bbar T is rank-3 with an extra LOWER BARRED index bbar; nabla_a (holo) connects mu,nu if
+    # UNbarred (the barred bbar index gets no holo connection).  Contract g^{a bbar} = ginv[b,a].
     nb = []
     for b in range(2):
-        nb.append(_nabla(blocks, b, True, g, ginv, Gam, GamB, simp=cancel))   # nabla_bbar T
-    # Now nabla_a of nb[b] (treat nb[b] as a symmetric-in-(mu,nu) rank-2 object with the extra lower
-    # barred index bbar -- which is NOT connected by nabla_a since it is barred).
+        nb.append(_nabla(blocks, b, True, g, ginv, Gam, GamB, simp=cancel))   # (nabla_bbar T)
+    L1 = [[sp.Integer(0)] * 4 for _ in range(4)]
     for mu in range(4):
         for nu in range(4):
             acc = sp.Integer(0)
-            bar = lambda i: i >= 2
-            ix = lambda i: i % 2
             for a in range(2):
                 for b in range(2):
-                    # nabla_a (nb[b])_{mu nu} = d_a (nb[b]_{mu nu}) - Gamma^lam_{a mu} nb[b]_{lam nu}
-                    #   - Gamma^lam_{a nu} nb[b]_{mu lam}   (barred mu/nu: no holo connection)
                     t = dz(nb[b][mu][nu], a)
                     if not bar(mu):
                         for lam in range(2):
@@ -726,9 +720,38 @@ def rough_laplacian(blocks, g=None, ginv=None, Gam=None, GamB=None):
                     if not bar(nu):
                         for lam in range(2):
                             t -= Gam[lam][a][ix(nu)] * nb[b][mu][lam]
-                    acc += gu(a, b) * cancel(t)
-            val = cancel(-2 * acc)
-            # store back into the block-triple by the (mu,nu) type
+                    acc += ginv[b, a] * cancel(t)        # g^{a bbar} = ginv[b,a]
+            L1[mu][nu] = acc
+
+    # ---- L2 = g^{abar b} nabla_abar (nabla_b T) :  inner holo nabla_b, outer antiholo nabla_abar ----
+    # nabla_b T is rank-3 with an extra LOWER UNBARRED index b; nabla_abar (antiholo) connects mu,nu
+    # if BARRED (the unbarred b index gets no antiholo connection).  Contract g^{abar b} = ginv[a,b].
+    nc = []
+    for b in range(2):
+        nc.append(_nabla(blocks, b, False, g, ginv, Gam, GamB, simp=cancel))  # (nabla_b T)
+    L2 = [[sp.Integer(0)] * 4 for _ in range(4)]
+    for mu in range(4):
+        for nu in range(4):
+            acc = sp.Integer(0)
+            for a in range(2):
+                for b in range(2):
+                    t = dzb(nc[b][mu][nu], a)
+                    if bar(mu):
+                        for lam in range(2):
+                            t -= GamB[lam][a][ix(mu)] * nc[b][lam + 2][nu]
+                    if bar(nu):
+                        for lam in range(2):
+                            t -= GamB[lam][a][ix(nu)] * nc[b][mu][lam + 2]
+                    acc += ginv[a, b] * cancel(t)        # g^{abar b} = ginv[a,b]
+            L2[mu][nu] = acc
+
+    # nabla*nabla T = -(L1 + L2), stored back into the block-triple by the (mu,nu) type.
+    out20 = zeros(2, 2)
+    out11 = zeros(2, 2)
+    out02 = zeros(2, 2)
+    for mu in range(4):
+        for nu in range(4):
+            val = cancel(-(L1[mu][nu] + L2[mu][nu]))
             if not bar(mu) and not bar(nu):
                 out20[ix(mu), ix(nu)] = val
             elif bar(mu) and bar(nu):
@@ -775,71 +798,94 @@ def _R_low(R, a, b, c, d):
     return sign * R[ix(a)][ix(b)][ix(c)][ix(d)]
 
 
+def _graise(i, j, ginv):
+    """The raised inverse-metric component g^{i j} for complex-frame indices i,j in 0..3 (Kahler:
+    nonzero ONLY for one holo + one antiholo; g^{ij}=g^{abar bbar}=0).  Convention g^{a bbar}=
+    ginv[b,a] (the VERIFIED pairing used throughout).  Returns 0 if both same bar-type."""
+    bar = lambda k: k >= 2
+    ix = lambda k: k % 2
+    if bar(i) == bar(j):
+        return sp.Integer(0)
+    if not bar(i):                      # i holo, j barred: g^{i jbar} = ginv[ix(j), ix(i)]
+        return ginv[ix(j), ix(i)]
+    return ginv[ix(i), ix(j)]           # i barred, j holo: g^{ibar j} = ginv[ix(i), ix(j)]
+
+
 def Rdot(blocks, g=None, ginv=None, R=None):
-    """The Weitzenbock curvature term (Rdot h)_{mu nu} = R_{mu rho nu sigma} h^{rho sigma} (raise
-    rho,sigma with g), for the FULL symmetric 2-tensor (all three blocks H20,H11,H02).  Built
-    index-honestly in the Kahler complex frame from the full lowered Riemann _R_low.  Raising in the
-    complex frame: h^{rho sigma} = g^{rho rho'} g^{sigma sigma'} h_{rho' sigma'} with g^{a bbar} =
-    ginv[b,a] (holo<->antiholo only; g^{ab}=g^{abar bbar}=0).  Returns block-triple.  Matched-monomial.
-    EARLIER BUG (fixed): only the (1,1) block was filled, leaving the (2,0)/(0,2) curvature action
-    ZERO -- which split the Delta_L eigenvalue (32 on (1,1) vs a spurious 36 on (2,0)/(0,2)) and
-    made the TT residue look like a non-eigentensor.  The full Rdot closes the Schur scalar."""
+    """The Weitzenbock curvature term (Rdot h)_{mu nu} = R_{mu rho nu sigma} h^{rho sigma}, for the
+    FULL symmetric 2-tensor (all three blocks H20,H11,H02).  Built INDEX-HONESTLY in the Kahler
+    complex frame: ONE uniform formula over mu,nu,rho,sigma in 0..3 using the full lowered Riemann
+    _R_low (which carries the Riemann pair/antisymmetry signs consistently) and the full metric
+    raising h^{rho sigma} = g^{rho rho'} g^{sigma sigma'} h_{rho' sigma'} (g^{a bbar}=ginv[b,a],
+    holo<->antiholo only).  RESEARCH s1.3, BUG-2 fix: the OLD per-block hand-written contractions
+    (raw R[a][k][b][l] / R[k][a][l][b]) had a sign/antisymmetry error from the pair-ordering on the
+    (2,0)/(0,2) anti-blocks (gave Rdot_anti = +4, but the Hess(R_M) control requires -4 there).
+    Routing ALL blocks through _R_low + uniform raising makes the anti-blocks inherit the SAME
+    consistent sign as the validated (1,1) block (where Rdot(g)|(1,1)=Ric=+6g, Delta_L(g)=0); the
+    sign is FIXED by the C1/C2b controls (provable 32-eigentensors), NOT by the verdict residue r.
+    Returns block-triple.  Matched-monomial (per-entry `cancel`)."""
     if g is None:
         g = fs_metric()
     if ginv is None:
         ginv = fs_metric_inv(g)
     if R is None:
         R = riemann_kahler(g, ginv, christoffel_hol(g, ginv))
-    H20, H11, H02 = blocks
-    gu = lambda a, b: ginv[b, a]          # g^{a bbar} = ginv[b,a]  (the VERIFIED pairing)
-    out11 = zeros(2, 2)
+    bar = lambda i: i >= 2
+    ix = lambda i: i % 2
+    # raise BOTH lower indices of h ONCE: hup[rho][sigma] = h^{rho sigma} = g^{rho rho'} g^{sigma
+    # sigma'} h_{rho' sigma'}  (rho,sigma in 0..3).  _T_get handles the symmetric block lookup.
+    hup = [[sp.Integer(0)] * 4 for _ in range(4)]
+    for rho in range(4):
+        for sig in range(4):
+            s = sp.Integer(0)
+            for rp in range(4):
+                grr = _graise(rho, rp, ginv)
+                if grr == 0:
+                    continue
+                for sp_ in range(4):
+                    gss = _graise(sig, sp_, ginv)
+                    if gss == 0:
+                        continue
+                    s += grr * gss * _T_get(blocks, rp, sp_)
+            hup[rho][sig] = cancel(s)
+    # (Rdot h)_{mu nu} = - R_{mu rho nu sigma} h^{rho sigma} (the standard Weitzenbock contraction,
+    # first/third indices free).  The overall SIGN is FIXED by reproducing the validated (1,1)
+    # normalization: -R_{a rho bbar sigma} h^{rho sigma} == R_{a bbar c dbar} g^{c fbar} g^{e dbar}
+    # h_{e fbar} = Ric = +6 g on the metric (verified C1, and on a generic Hermitian (1,1) input,
+    # all 4 entries; the bare +R_{mu rho nu sigma} gives -6g -- a Riemann-sign-convention artifact of
+    # riemann_kahler).  This sign is fixed by the C1/C2b CONTROLS (provable eigentensors), NOT by the
+    # verdict residue r (RESEARCH s1.3, BUG-2).  Routing ALL blocks through this ONE uniform formula
+    # makes the (2,0)/(0,2) anti-blocks inherit the consistent sign (the old per-block hand-written
+    # contractions had Rdot_anti = +4 instead of the required -4).
     out20 = zeros(2, 2)
+    out11 = zeros(2, 2)
     out02 = zeros(2, 2)
-    # (1,1) -> (1,1):  (Rdot h)_{a bbar} = R_{a bbar c dbar} g^{c fbar} g^{e dbar} h_{e fbar}
-    #   (the v31-VERIFIED formula: Rdot(g)(1,1)=Ric=6g, Delta_L(g)=0).  Input = H11.
-    for a in range(2):
-        for b in range(2):
+    for mu in range(4):
+        for nu in range(4):
             s = sp.Integer(0)
-            for c in range(2):
-                for d in range(2):
-                    for e in range(2):
-                        for fdx in range(2):
-                            s += R[a][b][c][d] * gu(c, fdx) * gu(e, d) * H11[e, fdx]
-            out11[a, b] = cancel(s)
-    # (2,0) -> (2,0):  on Kahler the curvature couples the holo-holo block to itself via
-    #   (Rdot h)_{ab} = R_{a cbar b dbar}? ... index-honestly: R_{a kbar b lbar} raised against the
-    # (2,0) input H20.  Using R[a][k][b][l] = R_{a kbar b lbar} (holo a, antiholo kbar, holo b,
-    # antiholo lbar) and raising BOTH holo indices of H20[c,d]=h_{cd} to antiholo slots:
-    #   (Rdot h)_{ab} = R_{a kbar b lbar} g^{c kbar} g^{d lbar} h_{cd}
-    #   = R[a][k][b][l] gu(c,k) gu(d,l) H20[c,d].
-    for a in range(2):
-        for b in range(2):
-            s = sp.Integer(0)
-            for k in range(2):
-                for l in range(2):
-                    for c in range(2):
-                        for d in range(2):
-                            s += R[a][k][b][l] * gu(c, k) * gu(d, l) * H20[c, d]
-            out20[a, b] = cancel(s)
-    # (0,2) -> (0,2): the complex conjugate structure.  R_{abar k bbar l}? -> use R[k][a][l][b]
-    #   = R_{k abar l bbar} and raise the antiholo indices of H02[c,d]=h_{cbar dbar}:
-    #   (Rdot h)_{abar bbar} = R_{k abar l bbar} g^{k cbar} g^{l dbar} h_{cbar dbar}
-    #   = R[k][a][l][b] gu(k,c) gu(l,d) H02[c,d].
-    for a in range(2):
-        for b in range(2):
-            s = sp.Integer(0)
-            for k in range(2):
-                for l in range(2):
-                    for c in range(2):
-                        for d in range(2):
-                            s += R[k][a][l][b] * gu(k, c) * gu(l, d) * H02[c, d]
-            out02[a, b] = cancel(s)
+            for rho in range(4):
+                for sig in range(4):
+                    if hup[rho][sig] == 0:
+                        continue
+                    rl = _R_low(R, mu, rho, nu, sig)
+                    if rl == 0:
+                        continue
+                    s += rl * hup[rho][sig]
+            val = cancel(-s)
+            if not bar(mu) and not bar(nu):
+                out20[ix(mu), ix(nu)] = val
+            elif bar(mu) and bar(nu):
+                out02[ix(mu), ix(nu)] = val
+            elif not bar(mu) and bar(nu):
+                out11[ix(mu), ix(nu)] = val
     return out20, out11, out02
 
 
 # [v32.0-B] The duplicate `def lichnerowicz` that stood here (shadowed by the one below) is removed.
-# The surviving full-tensor Delta_L is below; its (2,0)/(0,2) ANTI-block path is UNTRUSTED (see its
-# docstring).  The VERDICT operator is lichnerowicz_11 (the validated (1,1) sector).
+# [v33.0]   The surviving full-tensor `lichnerowicz` is REPLACED by `lichnerowicz_full_v33` below
+#           (control-validated: BUG-1 rough-Laplacian both orderings + BUG-2 index-honest Rdot).
+#           `lichnerowicz_11` (the validated (1,1) sector) is UNCHANGED and still used for the
+#           (1,1) Schur scalar.
 
 
 def lichnerowicz_11(blocks, g=None, ginv=None, Gam=None, GamB=None, R=None, Lambda=6):
@@ -873,16 +919,26 @@ def lichnerowicz_11(blocks, g=None, ginv=None, Gam=None, GamB=None, R=None, Lamb
     return (zeros(2, 2), out11, zeros(2, 2))
 
 
-def lichnerowicz(blocks, g=None, ginv=None, Gam=None, GamB=None, R=None, Lambda=6):
-    """Delta_L h = nabla*nabla h + 2 Lambda h - 2 Rdot h  (on the Einstein bg Ric=Lambda g, so
-    Ric o h + h o Ric = 2 Lambda h).  Returns the FULL block-triple.  Matched-monomial; cliff-safe on
-    the EXPLICIT (numeric-coefficient) tensors.  Lambda=6 (the cut).
-    *** v32.0-B WARNING: the (2,0)/(0,2) ANTI-block path here is UNTRUSTED -- it returned a spurious
-    28/4 (not 32) on the anti blocks of the verdict residue r.  The full TT mode's eigenvalue is
-    lambda_L=32 on EVERY block (Boucetta Table V/VIII row 2 for the (1,1)-27 + Tables VI/VII row 1 for
-    the (2,0)/(0,2)-27s; degree-counting forces it); the anti-block 32 rests on the primary source +
-    degree counting, NOT on this code.  Use ONLY lichnerowicz_11 (validated, the (1,1) sector) for
-    verdict eigenvalues. ***"""
+def lichnerowicz_full_v33(blocks, g=None, ginv=None, Gam=None, GamB=None, R=None, Lambda=6):
+    """The v33 CONTROL-VALIDATED full-tensor Lichnerowicz operator (RESEARCH s1):
+        Delta_L h = nabla*nabla h + 2 Lambda h - 2 Rdot h ,   Lambda=6 (the cut),
+    on the Einstein bg Ric=Lambda g (so Ric o h + h o Ric = 2 Lambda h).  Returns the FULL
+    block-triple (H20,H11,H02) on ALL THREE Kahler sectors.
+
+    This REPLACES the v32 `lichnerowicz`, whose (2,0)/(0,2) anti-block path was UNTRUSTED (it returned
+    a spurious 28/4 on the verdict residue r).  TWO independent bugs are fixed (both DERIVED, not
+    tuned -- RESEARCH s1.3, validated by the C1/C2a/C2b controls, never by r):
+      BUG 1: `rough_laplacian` now computes BOTH orderings of the second covariant derivative
+             (nabla*nabla = -(g^{a bbar} nabla_a nabla_bbar + g^{abar b} nabla_abar nabla_b), -1 each),
+             restoring conjugate symmetry on the anti-blocks (the old -2 x one-ordering was correct
+             on scalars but split (2,0) vs (0,2) on tensors).
+      BUG 2: `Rdot` now contracts ONE uniform index-honest formula -R_{mu rho nu sigma} h^{rho sigma}
+             via _R_low + full raising, the sign fixed to reproduce Rdot(g)|(1,1)=Ric=+6g; the
+             anti-blocks inherit the consistent sign (old hand-written per-block contractions had the
+             wrong anti-block sign, +4 vs the required -4).
+    Matched-monomial (per-entry `cancel`).  Validated: Delta_L g = 0 (C1), Delta_L Hess(phi_M)=12 on
+    (1,1) (C2a), Delta_L Hess(R_M)=32 on ALL THREE blocks conjugate-symmetric (C2b, the no-tuning
+    certificate)."""
     if g is None:
         g = fs_metric()
     if ginv is None:
@@ -903,6 +959,14 @@ def lichnerowicz(blocks, g=None, ginv=None, Gam=None, GamB=None, R=None, Lambda=
                 Bk[a, b] = cancel(rr[k][a, b] + 2 * Lambda * blocks[k][a, b] - 2 * rd[k][a, b])
         out.append(Bk)
     return out[0], out[1], out[2]
+
+
+def lichnerowicz(blocks, g=None, ginv=None, Gam=None, GamB=None, R=None, Lambda=6):
+    """Delta_L h = nabla*nabla h + 2 Lambda h - 2 Rdot h  (full block-triple).  [v33.0] now an alias
+    for the CONTROL-VALIDATED `lichnerowicz_full_v33` (the v32 UNTRUSTED anti-block path is fixed:
+    BUG-1 both rough-Laplacian orderings + BUG-2 index-honest Rdot sign).  Retained so the existing
+    gate1 controls (1b vacuum, 1c conformal direction) keep working through the corrected operator."""
+    return lichnerowicz_full_v33(blocks, g, ginv, Gam, GamB, R, Lambda)
 
 
 def _tensor_ratio(hb1, hb2, pts=None, blocks_use=(0, 1, 2)):
