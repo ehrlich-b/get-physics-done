@@ -21,6 +21,24 @@ confrontation begun in v17.
 > independent geometric dynamics. Both readings AGREE on the decision-relevant core — **NOT Einstein
 > gravity; gravity is separate.** Bryan's call on the label.
 
+> **VERIFICATION STATUS: TRIPLE-VERIFIED HIGH (sealed).**
+> - **Path 1 (orchestrator):** complex-frame computation (this verdict).
+> - **Path 2 (independent verifier, `93-VERIFICATION.md`, 6/6 + 9/9 HIGH):** a from-scratch real-4D
+>   -coordinate Lichnerowicz operator (zero shared code) reproduces Ric=6g and Δ_L=32 on all blocks of
+>   both Hess(R_M) and r — and shows WHY the complex-frame had bugs (a real-frame operator is
+>   automatically conjugate-symmetric with the textbook curvature sign; BUG-1/BUG-2 were holo/antiholo
+>   block-split artifacts). Independently re-derived Sym²(8)⊃27 multiplicity 1 (SU(3) weights).
+> - **Path 3 (adversarial, `93-ADVERSARIAL-CHECK.md`, HIGH):** four attacks aimed at REFUTING
+>   "NOT Einstein" all failed and STRENGTHENED the negative. Key strengthening facts: (a) r lifts the
+>   8-fold λ₁ degeneracy to FIRST order with four DISTINCT eigenvalue shifts {8/5, 8/45, −104/135,
+>   −8/135}, so "the λ₁-Hessian eigenvalue q" is set-valued/ill-posed — no natural scalar equals
+>   ε=20, the Schur proportionality is genuinely content-free (makes FORCES-OTHER LESS defensible);
+>   (b) the forced 5:4 (1,1):anti split is UNIVERSAL across all 8 generators + 2 dense detM≠0 witnesses
+>   (matter reaches one straddle combination, rank-1); (c) the clean structural reason no native
+>   spectral functional is Einstein: **(Δ_L−2Λ) is matter-INDEPENDENT, every native spectral
+>   functional's response is matter-dependent.** All three paths concur: **FORCES-NOTHING is the
+>   honest primary label.**
+
 **Gate 0 PASS prerequisite (binding STOP gate, discharged):** ε = λ_L − 2Λ = 32 − 12 = **20 CERTIFIED**
 on a directly-run, control-validated full-tensor Δ_L (commit `0e07d2b9`, `93-GATE-0-SUMMARY.md`). The
 v32 deferred obligation is discharged. Without this, no Block-C verdict could be reported.
@@ -117,11 +135,16 @@ Any spectral ratio κ read from Q_A is a framework number, NOT Newton's constant
   (Wall 2 unpaid). The v18/v20 MM-connection corpse stays buried. **v33 does NOT retract v17–v21**
   (Block-C statements; this is the upstream selection-law question, answered negatively for native
   functionals). **Paper 5 remains the only result in the more-than-nothing column.**
-- **Honest evidence level.** A1 (sphere/isometric/extremal), A3a (reachability), Track-B lemmas, and
-  Gate 0 (ε=20) are COMPUTED exact over Q. The A4 "rank-deficiency ⇒ not-Einstein" step is ARGUED from
-  representation theory (Sym²(8) ⊃ 27 once vs the multiplicity-3 straddle; all matter modes share the
-  forced 5:4 split) — flagged for the verifier to confirm or to firm up by a direct 3-block computation
-  of Q_A. The Schur-tautology guard (Trap #24) is convention-independent.
+- **Honest evidence level (TRIPLE-VERIFIED).** A1 (sphere/isometric/extremal), A3a (reachability),
+  Track-B lemmas, and Gate 0 (ε=20) are COMPUTED exact over Q. The A4 "rank-deficiency ⇒ not-Einstein"
+  step — flagged as the softest — is now CONFIRMED, not merely argued: the verifier re-derived
+  Sym²(8) ⊃ 27 at multiplicity exactly 1 (SU(3) Gelfand–Tsetlin weights, Λ²=0 in the 27), and the
+  adversarial path verified the forced 5:4 split is UNIVERSAL (all 8 generators + 2 dense detM≠0
+  witnesses) so matter reaches one rank-1 straddle combination vs the full-rank-3 uniform Einstein.
+  The Schur-tautology guard (Trap #24) is convention-independent; the attempt to force q=ε=20 collapsed
+  (the degenerate-λ₁ shift is set-valued {8/5, 8/45, −104/135, −8/135}). The clean structural seal:
+  **(Δ_L−2Λ) is matter-INDEPENDENT, every native spectral functional's response is matter-dependent**,
+  so no native functional can BE the Einstein operator.
 
 ---
 
