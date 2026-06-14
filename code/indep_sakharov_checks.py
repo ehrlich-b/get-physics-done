@@ -93,10 +93,13 @@ def C1b_zeta0_numeric():
     Mt = mp.matrix(rows)
     sol = mp.lu_solve(Mt, mp.matrix(rhs))
     c0 = sol[2]   # constant term of theta(t) small-t expansion
-    zeta0_heat = c0 - 1   # zeta(0) = (theta const term) - dim ker(=1)
+    # theta(t) here sums k>=1 ONLY (the zero mode is already excluded), so its small-t constant term
+    # c_0 = A_4/(4pi)^2 - dim ker = zeta(0) DIRECTLY -- no further subtraction (the earlier `c0 - 1`
+    # double-subtracted dim ker, giving the spurious -209/120; v34 ratification fix).
+    zeta0_heat = c0
     target = -89.0 / 120.0
     print(f"  heat-kernel small-t const term c_0 = {mp.nstr(c0, 12)}")
-    print(f"  zeta(0) = c_0 - dim ker(1) = {mp.nstr(zeta0_heat, 12)}  (target -89/120 = {target:.12f})")
+    print(f"  zeta(0) = c_0 (theta sums k>=1, zero mode already excluded) = {mp.nstr(zeta0_heat, 12)}  (target -89/120 = {target:.12f})")
     check("zeta(0) via heat-kernel Mellin (indep continuation) ~ -89/120",
           abs(float(zeta0_heat) - target) < 1e-4, f"{float(zeta0_heat):.8f} vs {target:.8f}")
 
