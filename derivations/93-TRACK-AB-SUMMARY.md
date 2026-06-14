@@ -1,8 +1,12 @@
 # Phase 93 (v33.0) — Track A + Track B gate summary (the Block-C confrontation)
 
-**Verdict: FORCES-NOTHING (natively) — park at fork A.** No native functional A[g] forces a
-gravity-shaped metric response; gravity is separate. (Alternative label FORCES-OTHER flagged for
-ratification; both agree NOT Einstein.) Full reasoning in `93-VERDICT.md`. Gate 0 (ε=20) in
+**Verdict: FORCES-NOTHING (natively) — label settled by Bryan (FORCES-OTHER was the flagged
+alternative).** No native functional A[g] forces a gravity-shaped metric response **under
+EXTREMIZATION**. **SCOPE (binding, ratification §3):** this does NOT yet park at fork A or seal the
+menu — base-Sakharov on the variety (the INDUCE route: a₁=∫R√g as the induced effective action, NOT a
+posited term) is UNRUN and ESCAPES the v21 fiber rank-wall kill, because v33 Gate-0 proved the variety
+source is rank-compatible with the Einstein operator (Δ_L r=32 r) which g=e·e never was = **v34**; fork
+A is forced only if v34 ALSO lands negative. Full reasoning in `93-VERDICT.md`. Gate 0 (ε=20) in
 `93-GATE-0-SUMMARY.md`. Computations: `code/track_ab_verdict.py`, `code/gate0_v33.py`.
 
 | Gate | Result | Status |

@@ -10,9 +10,18 @@ law), (ii) being extremal, exerts NO first-order force, and (iii) its second-ord
 to the certified matter mode is **Schur-tautologically** proportional to the Einstein operator
 (Trap #24) — content-free, not a derivation — while the operator itself is finite-rank and cannot BE
 the full-rank Einstein operator. The only menu item that genuinely PRODUCES the Einstein operator,
-a₁ = ∫R√g, is the fenced Einstein–Hilbert **import** (Trap #22). **The variety forces nothing; gravity
-is separate.** This is the tripwire's accepted RESOLUTION of don't-know, and it SEALS the selection-law
-confrontation begun in v17.
+a₁ = ∫R√g **posited as a term**, is the fenced Einstein–Hilbert **import** (Trap #22). **The EXTREMIZE
+route forces nothing.**
+
+> **SCOPE CORRECTION (binding, ratification §3).** This does NOT yet "park at fork A" or "seal the
+> menu." The selection-law menu is NOT exhausted on the variety: **base-Sakharov on the variety** — the
+> INDUCE route, where a₁=∫R√g arises as the INDUCED effective action from integrating out the moment
+> field on CP² (NOT a posited term) — is **UNRUN** and **ESCAPES the v21 FIBER rank-wall kill**. The
+> reason is a genuine v33 Gate-0 WIN: the variety matter source is **rank-compatible with the Einstein
+> operator** (Δ_L r = 32·r, a full eigentensor), which the v18/v21 soldered metric g=e·e never was
+> (16-vs-6 wall). So one live kind-4 instance remains = **v34**. **"Parks at fork A" is PREMATURE — fork
+> A is FORCED only if v34 ALSO lands negative.** This run kills the *extremize* route; the *induce* route
+> is v34.
 
 > **Alternative label (flagged for ratification): FORCES-OTHER.** By the strict taxonomy (A3a
 > non-blind + A4 non-degenerate + A4 not-Einstein), one MAY call the λ₁-extremal Hessian "the
@@ -34,10 +43,10 @@ confrontation begun in v17.
 >   −8/135}, so "the λ₁-Hessian eigenvalue q" is set-valued/ill-posed — no natural scalar equals
 >   ε=20, the Schur proportionality is genuinely content-free (makes FORCES-OTHER LESS defensible);
 >   (b) the forced 5:4 (1,1):anti split is UNIVERSAL across all 8 generators + 2 dense detM≠0 witnesses
->   (matter reaches one straddle combination, rank-1); (c) the clean structural reason no native
->   spectral functional is Einstein: **(Δ_L−2Λ) is matter-INDEPENDENT, every native spectral
->   functional's response is matter-dependent.** All three paths concur: **FORCES-NOTHING is the
->   honest primary label.**
+>   (matter reaches one straddle combination, rank-1). **The Track-A kill is the RANK argument** (Q_A
+>   rank-1 on the multiplicity-3 straddle vs the full-rank-uniform Einstein), NOT a matter-(in)dependence
+>   gloss — Q_A, like (Δ_L−2Λ), is matter-independent. (Matter-dependence only sorts the Track-B moment
+>   functionals.) All three paths concur: **FORCES-NOTHING is the honest primary label.**
 
 **Gate 0 PASS prerequisite (binding STOP gate, discharged):** ε = λ_L − 2Λ = 32 − 12 = **20 CERTIFIED**
 on a directly-run, control-validated full-tensor Δ_L (commit `0e07d2b9`, `93-GATE-0-SUMMARY.md`). The
@@ -118,18 +127,23 @@ Any spectral ratio κ read from Q_A is a framework number, NOT Newton's constant
 - **(iii) Vol[g]:** δVol/δg ∝ g ⇒ cosmological-constant only, nothing on TT.
 - **(iv) moment-map functionals:** ∫|∇φ_M|² is the matter functional E itself (already in the pair),
   not a new geometry A[g]; ∫φ_M² ⇒ trace-only.
-- **Menu closes:** Track A (λ₁) is the unique selection-traceable NATIVE candidate, and it is NOT
-  Einstein. **The only Einstein-PRODUCER is the import a₁.** No silent caps (the menu is the
-  exhaustive degree-bounded list; higher heat invariants and the OP² lift are named/priced, not run).
+- **EXTREMIZE menu closes:** Track A (λ₁) is the unique selection-traceable NATIVE candidate under
+  EXTREMIZATION, and it is NOT Einstein. The only Einstein-PRODUCER among posited terms is the import
+  a₁. **But a₁ as an INDUCED effective action (base-Sakharov on the variety, NOT posited) is the
+  separate INDUCE route — UNRUN here = v34** (see the SCOPE CORRECTION; it escapes the v21 fiber kill
+  via the Gate-0 rank-compatibility). No silent caps within the extremize menu (the exhaustive
+  degree-bounded list; OP² lift named/priced, not run).
 
 ---
 
 ## What this is, and is not (FENCED — binding, verbatim)
 
-- **It IS:** a determination that no NATIVE functional of the variety's metric forces the Einstein (or
-  any non-tautological gravity-shaped) response; the one native structure (λ₁-extremality) is a
-  consistency CONDITION (class-selection), not a selection LAW, and its matter coupling is
-  Schur-tautological. The route parks at **fork A**: honest incomplete-TOE, **gravity is separate**.
+- **It IS:** a determination that no NATIVE functional of the variety's metric, **under EXTREMIZATION**,
+  forces the Einstein (or any non-tautological gravity-shaped) response; the one native structure
+  (λ₁-extremality) is a consistency CONDITION (class-selection), not a selection LAW, and its matter
+  coupling is Schur-tautological + rank-deficient. **The extremize route forces nothing.** (Fork A is
+  NOT yet forced — the INDUCE route, base-Sakharov on the variety, is the unrun v34; see SCOPE
+  CORRECTION.)
 - **It is NOT:** a dynamical metric, a selection law, a κ (Newton), or any Einstein-equation / G=κT /
   dark-matter / geodesic statement. The frozen FS geometry is USED, not derived. Signature Riemannian
   (Wall 2 unpaid). The v18/v20 MM-connection corpse stays buried. **v33 does NOT retract v17–v21**
@@ -142,23 +156,30 @@ Any spectral ratio κ read from Q_A is a framework number, NOT Newton's constant
   adversarial path verified the forced 5:4 split is UNIVERSAL (all 8 generators + 2 dense detM≠0
   witnesses) so matter reaches one rank-1 straddle combination vs the full-rank-3 uniform Einstein.
   The Schur-tautology guard (Trap #24) is convention-independent; the attempt to force q=ε=20 collapsed
-  (the degenerate-λ₁ shift is set-valued {8/5, 8/45, −104/135, −8/135}). The clean structural seal:
-  **(Δ_L−2Λ) is matter-INDEPENDENT, every native spectral functional's response is matter-dependent**,
-  so no native functional can BE the Einstein operator.
+  (the degenerate-λ₁ shift is set-valued {8/5, 8/45, −104/135, −8/135}). **The kill is the RANK
+  argument** (Q_A rank-1 on the multiplicity-3 straddle vs full-rank-uniform Einstein) — NOT a
+  matter-(in)dependence gloss (Q_A, like the Einstein operator, is matter-independent; matter-dependence
+  only sorts the Track-B moment functionals). No native functional reproduces the full-rank Einstein
+  operator on the straddle.
 
 ---
 
 ## Through-line (mirror v32's)
 v31 the tensor wall OPENS (existence) → v32 the tensor DICTIONARY closes (forced source data: κ=1/30,
 ε=20, the triple-27 straddle) → **v33 asks the SELECTION LAW and answers it: NO native functional A[g]
-forces a gravity-shaped metric response — the one native candidate (λ₁-extremality) is a class-selection
-consistency condition whose matter coupling is Schur-tautological, and the only Einstein-producer
-(∫R√g) is an import; the variety forces nothing, the route parks at fork A (honest incomplete-TOE).
-This SEALS the selection-law confrontation: gravity is separate.**
+forces a gravity-shaped metric response UNDER EXTREMIZATION — the one native candidate (λ₁-extremality)
+is a class-selection consistency condition whose matter coupling is Schur-tautological + rank-deficient,
+and the only Einstein-producer among posited terms (∫R√g) is an import. The EXTREMIZE route forces
+nothing; the INDUCE route (base-Sakharov on the variety, a₁ as the induced action) is v34 — it ESCAPES
+the v21 fiber kill because Gate-0 proved the variety source is rank-compatible (Δ_L r=32 r). Fork A is
+forced only if v34 ALSO lands negative.**
 
 ## NEXT
-HOLD the v33.0 milestone bookkeeping for human ratification (mirroring v25–v32). The OTHER-vs-NOTHING
-label is Bryan's call. The lapse/00 assembly stays DEFERRED (it acquires a referent only if Block-C had
-landed FORCES-EINSTEIN-FORM/OTHER, which it did not). The OP² lift and base-Sakharov stay priced-only.
+HOLD the v33.0 milestone bookkeeping for human ratification (mirroring v25–v32). **The label is settled
+(Bryan §2): FORCES-NOTHING primary.** **NEXT registered run = v34 = base-Sakharov on the variety** (the
+INDUCE route; `paper6-base-sakharov-variety-prompt.md`, comes from blog-side — do NOT self-register). v34
+COMPLETES the Block-C confrontation (extremize done; induce next); honest gate carried — even a clean
+v34 close is CONDITIONAL on the state-fp ⟹ metric-fp clamp. The lapse/00 assembly stays DEFERRED (it
+acquires a referent only on a positive law). The OP² lift stays priced-only.
 **Do NOT self-register v34** — the next prompt comes from blog-side. Three-path verification standing
 (gpd-verifier next, separate code path; adversarial third path on the OTHER-vs-NOTHING fork if contested).
