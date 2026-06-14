@@ -75,6 +75,58 @@ NOT-YET-FORCED classification (vs. supplying the Paper-5 fit that would make it 
 
 ---
 
+## Three-path verification seal (HIGH)
+
+The verdict was reached by orchestrator de-risk → executor → independent verifier → adversarial, all
+exact over Q, all concurring **HIGH**:
+
+- **Path 1 — orchestrator de-risk + executor (complex-frame).** Every load-bearing number established
+  before the run and reproduced by the executor with zero deviation (ε=20, E=0, a₁=R/6 attractive,
+  ζ(0)=−89/120, A₄/(4π)²=31/120, A₂/A₀=4, A₀=π²/2, Λ_cc=(3/2)Λ_f², Λ_f²=4, over-determined=False,
+  κ_ind FREE, NOT-YET-FORCED). Driver exit 0, 7 non-hardwired verdict self-tests pass.
+- **Path 2 — independent verifier (`94-VERIFICATION.md`, commit 2d26f63c, HIGH).** The decisive
+  **ζ(0)=−89/120 confirmed THREE genuinely independent ways**: (a) the Gilkey a₄ from a from-scratch
+  real-coordinate Riemann tensor — R=24, |Ric|²=144, **|Riem|²=192** (= the literature CP²
+  Kretschmann 16/3·Λ²) ⇒ A₄/(4π)²=31/120 ⇒ ζ(0)=−89/120, sharing zero code with any spectral-ζ path;
+  (b) a continuation-free small-t heat-kernel fit (−0.74166666664, with Vol=π²/2 and R=24 as bonus
+  outputs); (c) analytic pole-subtraction. All 7 claims independently confirmed (spectrum via the
+  SU(3) (k,k) Weyl dimension (k+1)³; minimal-scalar a₁=R/6 attractive via Gilkey/Visser; ε=20 via the
+  v33 from-scratch real-coordinate Lichnerowicz operator; Besse Δ_E=Δ_L−2Λ; the ladder re-implemented
+  and agreeing on all combos). Cross-check bonus: a CONFORMAL scalar (E=−R/6) gives ζ(0)=−119/120 =
+  exactly the j=0 piece ⇒ the program correctly uses the MINIMAL (not conformal) Laplacian.
+- **Path 3 — adversarial (`94-ADVERSARIAL-CHECK.md`, commit ef108013).** All FOUR refutation attacks
+  FAILED and strengthened the verdict. The decisive one (Attack 1, the v21 rank-wall): proved exact
+  over Q that the source TT(B3) is a **PURE ε=20 eigentensor on all three Kähler blocks for all four
+  matter directions, with NO off-eigenspace residue** — there is no variety analog of the v21 off-T
+  block that produced the EmptySet rank-wall death. The trace (scale) and TT sectors constrain
+  DECOUPLED knobs (Λ_f for the scale mode; the free κ_ind for the TT amplitude), the structural
+  opposite of v21's "≥2 conditions on one scalar ⇒ EmptySet" ⇒ the executor's hand-asserted
+  `num_conditions=1` is now VERIFIED-correct. Attack 2 (the mass m²=λ₁=12 does NOT flip the sign — it
+  lands in the cc term, not 1/G), Attack 3 (even with the mass, Λ_cc=(3/2)Λ_f²−18=6 ⇒ Λ_f²=16, still
+  ONE equation/ONE knob; strict-ζ supplies no fixed Λ_cc≠6, the EH coupling log-runs), and Attack 4
+  (no corpus proof forces state-fp ⟹ metric-fp; Paper 5 is state-space-only with zero gravitational
+  claims; ζ′(0) machinery native) all failed too.
+
+---
+
+## ⚑ Ratification ledger (three judgments; verifier + adversarial confirm the FACTS, leave the CALLS to Bryan)
+
+1. **G2 reading [A] PASS-conditional vs [B] soft-FAIL** — verified FACT: not over-determined (TT(B3) a
+   pure ε=20 eigentensor, decoupled knobs), so NOT the rank-wall kill. The CALL: does "FS critical at
+   the only/natural scale (Λ_f²=4)" count as PASS [A, recommended], or does demanding a content-forced
+   cancellation make it a soft Λ-mismatch [B]? Both robust under attack; neither auto-picked.
+2. **G4 NOT-YET-FORCED** — verified FACT: no proof of the state-fp ⟹ metric-fp bridge exists in the
+   corpus (Paper 5 is state-space-only). The CALL: NOT-YET-FORCED (the honest default ⇒
+   CLOSES-CONDITIONAL) vs supplying the Paper-5 fit that would make it FIT ⇒ CLOSES-FORCED. Trap #25:
+   NOT glazed.
+3. **The G4(b) imports-boundary (adversarial residual doubt, flagged not a kill)** — the effective-action
+   IDENTITY itself (Γ=½ Tr log Δ, a₁=∫R) is borrowed QFT formalism. The program's imports-as-math
+   standard (it already uses Gilkey/Besse/FS) makes the NATIVE-computation reading defensible (⇒
+   CLOSES-CONDITIONAL), but a stricter reviewer could lean **IMPORTS-QFT** ⇒ fork A. Either way gravity
+   stays unforced and Paper 5 stays the only more-than-nothing result. A human-ratification line.
+
+---
+
 ## What this completes
 
 v33 ran the **EXTREMIZE** route → **FORCES-NOTHING** (λ₁-extremality is a class-consistency condition,
