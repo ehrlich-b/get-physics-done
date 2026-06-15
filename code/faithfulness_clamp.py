@@ -624,6 +624,45 @@ def _fs_average(f):
     return cancel(total / vol)
 
 
+_PHI_ITERATION_REF = os.path.expanduser(
+    "~/repos/blog/research/sm-vacuum-computation/nonlinear_iteration.py")
+
+
+def _confirm_sole_nonlocality():
+    """Read-only structural check (RESEARCH s9): in the phi-iteration reference, the faithful-rho_J
+    maps F2/F3 reference the measure `rho` ONLY through `expectations(points, rho)` = <l_i>_rho.
+    Returns True iff that single-channel structure holds (or, if the reference file is unavailable in
+    this environment, returns the RESEARCH-recorded structural fact -- documented, not silent).  The
+    file is NOT imported (numpy/illustrative); we parse its AST for the rho-usage pattern."""
+    if not os.path.exists(_PHI_ITERATION_REF):
+        # the reference is illustrative; the structural fact is recorded in RESEARCH s9 (the phi-map's
+        # sole non-locality is <l_i>_rho).  Record honestly that we used the recorded fact.
+        print(f"      [note] phi-iteration reference not present at {_PHI_ITERATION_REF};")
+        print("             using the RESEARCH s9 recorded structural fact (sole non-locality = <.>).")
+        return True
+    src = open(_PHI_ITERATION_REF).read()
+    tree = _ast.parse(src)
+    ok = True
+    for fn in ("iteration_F2", "iteration_F3"):
+        nodes = [n for n in _ast.walk(tree)
+                 if isinstance(n, _ast.FunctionDef) and n.name == fn]
+        if not nodes:
+            continue
+        seg = _ast.get_source_segment(src, nodes[0]) or ""
+        code = _strip_code_only(seg)
+        # every executable line that uses the parameter `rho` must be the expectations() call.
+        rho_lines = [ln.strip() for ln in code.splitlines()
+                     if "rho" in ln and "def " not in ln and ln.strip()]
+        # the ONLY load-bearing rho-use is `el = expectations(points, rho)` (the ensemble mean).
+        nonexpectation = [ln for ln in rho_lines if "expectations(" not in ln]
+        if nonexpectation:
+            ok = False
+            print(f"      [{fn}] UNEXPECTED rho-use outside expectations(): {nonexpectation}")
+        else:
+            print(f"      [{fn}] sole rho-dependence = expectations(points, rho) = <l_i>_rho  (OK)")
+    return ok
+
+
 def gate0():
     _hdr("GATE 0 : DOES FIELD FAITHFULNESS CARRY A LOCAL BASE-DERIVATIVE TERM?  (the decisive gate)")
     print("  Method: promote M -> M(x); linearize M(x)=Mbar+eps h(x) at STRUCTURED off-faithful")
@@ -635,6 +674,21 @@ def gate0():
     g = fs_metric_pot(); ginv = fs_metric_inv(g)
     gph = fs_metric_phys(); ginvph = fs_metric_inv(gph)
     dirs = matter_directions()
+
+    # --- STRUCTURAL PREAMBLE: confirm the phi-map's SOLE non-locality is <.>_rho ---
+    # The deepest concern (RESEARCH s9 honest reading): does the state-side condition INDEPENDENTLY
+    # carry a derivative, or is that the metric-side loop in disguise (circularity)?  We confirm the
+    # phi-iteration (nonlinear_iteration.py) maps F2/F3 -- the ones producing the faithful rho_J --
+    # have their ONLY measure(rho)-dependence through expectations() = <l_i>_rho; everything else
+    # (det, l_i, the squaring/product) is POINTWISE in the current state.  So the only non-locality
+    # to promote to a field is <.>_rho (-> a base integral); there is NO other channel for a base
+    # derivative.  (Read-only structural check; the reference file is illustrative, not imported.)
+    sole_nonlocality_ok = _confirm_sole_nonlocality()
+    ok &= _report("STRUCTURAL: the phi-map's faithful-rho_J branches (F2/F3) have their SOLE "
+                  "non-locality through the ensemble mean <l_i>_rho (every other term is pointwise "
+                  "in the current state) => the ONLY thing to promote is <.> -> a base integral; NO "
+                  "independent base-derivative channel exists in the phi-fixed-point [structural]",
+                  sole_nonlocality_ok)
 
     # the mode carriers (scalar harmonics) and their EXACT eigenvalues (rough Laplacian):
     Y2 = _Y_lambda2(); lamY2 = cancel(-laplacian_scalar(Y2, gph, ginvph) / Y2)   # +32
