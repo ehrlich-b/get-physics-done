@@ -39,7 +39,7 @@ native geometric area independent of the state-space information geometry to pai
 | **G1 guard (1)** | DENOMINATOR-ZERO handling | **1/1 PASS** | genuine G_M=0 locus = the EQUATOR (z1=±1, z2=0; corrected from §3 "vertex"); reciprocal |G|/A=0 finite; vertex = NUMERATOR-zero (Var=0, R=0) |
 | **G1 guard (2)** | HOMOGENEITY: R non-constant + A_M, G_M different M-structure | **2/2 PASS** | R ∈ {2/13, 4/3, 8/5, 44/17} NOT literally constant; shear = ¾⟨M⟩²−½TrM² (state-space) |
 | **G1 guard (3)** | FISHER-CORPSE gate (decisive) | **1/1 PASS** | A_M ≡ Var ⇒ R = Fisher/(rel-entropy) ⇒ DEAD-FISHER / fork A, STOP (G2 not reached) |
-| **G1 preempt** | LIVE-TENSOR structurally precluded for this canonical area | **1/1 PASS** | A_ii = metric TRACE of dφ⊗dφ ⇒ scalar part, never TT |
+| **G1 preempt** | LIVE-TENSOR killed (TT present-but-Fisher; adversarial-sharpened) | **1/1 PASS** | rank-1 dφ⊗dφ ⇒ every FS-canonical area is a Var power: A_ii=Var, A_full=4Var², **A_TT=3Var²**; TT channel PRESENT but a Fisher monomial ⇒ no independent rate |
 | **G2** | the rank wall | **NOT REACHED** | the Fisher-corpse gate fired in G1; no genuine geometric non-Fisher shear survived |
 | **verdict()** | the real verdict from computed booleans | **DEAD-FISHER** | flags {areas_agree:T, A_is_fisher:T, R_constant:F, area_is_trace:T, shear_is_geometric:F} |
 
@@ -146,8 +146,10 @@ that leave the verdict and all decisive numbers unchanged.
   interpretive (not purely computational) determination; it is the de-risked, pre-registered expected landing.
 - **verdict() non-hardwired** — [CONFIDENCE: HIGH]: the same function returns 5 distinct verdicts under synthetic
   inputs (self-tests), proving the branch is forced by the flags, not a constant.
-- **G2 not reached / LIVE-TENSOR precluded** — [CONFIDENCE: HIGH]: A_ii is literally the metric trace of dφ⊗dφ
-  (scalar part by construction); the Fisher gate fires before G2.
+- **G2 not reached / LIVE-TENSOR killed (TT-is-Fisher)** — [CONFIDENCE: HIGH]: the rank-1 metric-mode dφ⊗dφ has
+  EVERY FS-canonical area a Var power (A_ii=Var, A_full=4Var², A_TT=‖traceless‖²=3Var²); the TT channel is PRESENT but
+  a Fisher monomial (not "structurally precluded", per the adversarial path) ⇒ no independent geometric rate; the
+  Fisher gate fires before G2.
 
 ---
 

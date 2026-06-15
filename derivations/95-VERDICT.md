@@ -59,9 +59,13 @@ polynomial-numerator comparison over ρ-powers — never a float, never a `cance
 bits ⇒ the variety sets no native geometric bits↔area rate ⇒ the rate is a contingent import ⇒ **fork A**. The
 Fisher-corpse gate (Bug-guard 3) fires in G1 and the run STOPS before G2 (which is not reached and not expected).
 
-**LIVE-TENSOR is structurally precluded for this canonical area:** `A_M^(ii)` is literally the metric TRACE of the
-v31 metric-mode `dφ_M ⊗ dφ_M`, so it carries the scalar (trace) part, never the TT part. Even if one (wrongly) routed
-past the Fisher gate to G2, the area source is pure-trace ⇒ at most LIVE-SCALAR, never LIVE-TENSOR.
+**LIVE-TENSOR is killed — but by TT-being-Fisher, not by TT-absence (adversarial sharpening).** The metric-mode
+`dφ_M ⊗ dφ_M` is rank-1 (`s⊗s` with `|s|²_g = Var`), so EVERY FS-canonical area invariant of it is a fixed power of
+the Fisher variance: metric-trace `A_ii = Var`, full norm `‖dφ_M⊗dφ_M‖²_g = 4·Var²`, and the **transverse-traceless**
+part `A_TT = ‖traceless part‖²_g = 3·Var²`. The TT channel is therefore PRESENT (not "structurally precluded"), but it
+is itself a Fisher monomial — `R_TT = 3·Var²/|G_M|` shears only via the same Fisher-vs-relative-entropy state-space
+mechanism, supplying NO independent geometric shearing rate. So even routing past the Fisher gate to G2, no canonical
+area escapes the Fisher object: not LIVE-TENSOR, and no LIVE-SCALAR via an independent rate either.
 
 ---
 
@@ -122,8 +126,8 @@ angle now points at the same single unpaid step (the G-valued RT equality = the 
    directions is the **EQUATOR** (e.g. z₁=±1, z₂=0 for d1, where the (1,2)-block face is maximally mixed). At the
    vertex z=0 it is the **numerator** `Var` that vanishes (E_11 is a d1-eigenstate) while `G_M = −1/4` stays finite.
    Both loci are non-shears (reciprocal |G|/A = 0 finite at the equator; R = 0 at the vertex); the driver tests the
-   corrected (exact) facts. The verdict and all §9 numbers are unaffected. **A notation/RESEARCH-prose follow-up could
-   correct the §3 "vertex" wording to "equator" for the record.**
+   corrected (exact) facts. The verdict and all §9 numbers are unaffected. **RESOLVED at ratification (2026-06-15):
+   RESEARCH §3 wording corrected from "vertex" to "equator".**
 
 2. **DEVIATION on conjugation (latent bug fix), non-blocking, identity holds.** The prompt instructs "use a z↔z̄ swap
    (NEVER sympy conjugate())". The swap ALONE gives A_iii ≠ Var; the **full** complex conjugation = z↔z̄ swap **AND**
@@ -149,6 +153,36 @@ angle now points at the same single unpaid step (the G-valued RT equality = the 
    and the program's own pre-registered Fence 3 / Bug-guard 3. It is the de-risked, pre-registered expected landing;
    flagged MEDIUM only because it is interpretive rather than purely computational.
 
-6. **MILESTONE HELD.** No edits to `.gpd/state.json`, `MILESTONES.md`, `PROJECT.md`, `STATE.md`; no `gpd phase
-   complete` / `state advance` / `complete-milestone`; the next slot is NOT self-registered. Awaiting human
-   ratification.
+6. **MILESTONE RATIFIED 2026-06-15 (Bryan)** — see the seal below; recorded by hand (state.json / MILESTONES /
+   PROJECT / STATE + memory, mirroring v34); did NOT run `gpd phase complete` / `state advance` /
+   `complete-milestone`; the next slot is NOT self-registered.
+
+---
+
+## QUAD-PATH VERIFICATION SEAL + RATIFICATION (2026-06-15)
+
+**VERDICT RATIFIED: DEAD-FISHER / fork A — HIGH (math) / MEDIUM-accepted (the one interpretive step).** Bryan's
+ratification note: the MEDIUM interpretive step is *robust because even a generous LIVE reading routes to the clamp
+via the anti-overclaim fence* (LIVE is necessary-not-sufficient, upstream of the state-fp⟹metric-fp clamp), so the
+verdict's downstream meaning (fork A / the clamp is the sole remaining gravity question) does not depend on resolving
+the leap either way.
+
+**The four independent paths, all agreeing:**
+1. **Orchestrator de-risk** (exact over ℚ): established A_ii ≡ Var, G_M = Var + ¾⟨M⟩² − ½TrM² before any agent ran.
+2. **Executor** (`code/area_per_bit.py`, `3af1080b`): 25/25 PASS, exact over ℚ, non-hardwired verdict() + 5 self-tests.
+3. **Independent verifier** (`95-VERIFICATION.md`, `599eed9e`): fresh engine, 5/5 charges PASS, HIGH; A_ii ≡ Var
+   re-derived a THIRD chart-free way via ⟨ψ|M(1−P)M|ψ⟩ = Var; off-faithfulness CLEARED (not the v23 I/3 death);
+   Provost–Vallée FS = Re(QGT) = quantum Fisher metric anchor verified.
+4. **Adversarial AREA-RIG** (`95-ADVERSARIAL-CHECK.md`, `599eed9e`): the attack FAILED to overturn and STRENGTHENED
+   the verdict — tested the TT-mode and symplectic candidates the executor had only asserted away, and found EVERY
+   FS-canonical area of the rank-1 mode is a Var power (A_ii = Var, A_TT = 3·Var², A_full = 4·Var²). Not LIVE-TENSOR
+   (TT present but Fisher), not INCONCLUSIVE (no flip — all defs the same Fisher object up to a constant/power).
+
+**Three corrections baked in at ratification (per Bryan):**
+- The TT channel is **PRESENT and = 3·Var²** (a Fisher monomial), **NOT "structurally precluded"** — the adversarial's
+  sharpening; LIVE-TENSOR is killed by TT-being-Fisher, a stronger kill than TT-absence (corrected throughout this
+  doc, the SUMMARY, and RESEARCH §3).
+- RESEARCH §3 denominator-zero wording corrected: the rank-2 `G_M = 0` locus is the **EQUATOR** (z₁=±1, z₂=0), not the
+  vertex (at the vertex it is the numerator Var that vanishes).
+- The two stray untracked files the adversarial left (`code/lichnerowicz_response_adversarial.py` duplicate + a `.pkl`
+  cache) deleted.

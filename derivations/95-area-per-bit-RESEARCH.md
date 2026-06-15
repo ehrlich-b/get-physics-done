@@ -159,9 +159,11 @@ Compute **R(p, M) = A_M(p) / |G_M(p)|** exactly over ℚ along the structured fa
 using the pinned canonical A_M = A_M^(ii) = Var (and the cross-check A_M^(iii)).
 
 **The verdict ladder (apply the bug guards BEFORE classifying):**
-1. **Denominator-zero handling.** G_M(p) → 0 on a real locus (e.g. near the vertex E_11 for the rank-2 directions),
-   where R blows up. These are ZEROS OF THE BIT-COUNTER, not shears of the rate; exclude that locus (state it) or
-   work with the reciprocal |G_M|/A_M, which is finite there. Do NOT report a blow-up as "R shears."
+1. **Denominator-zero handling.** G_M(p) → 0 on a real locus — for the rank-2 directions this is the **EQUATOR**
+   (e.g. z₁=±1, z₂=0, where the (1,2)-block face is maximally mixed), NOT the vertex; at the vertex z→0 it is instead
+   the **numerator** Var that vanishes (G_M = −1/4 stays finite) — where R blows up (or → 0). These are ZEROS OF THE
+   BIT-COUNTER (or of the area), not shears of the rate; exclude that locus (state it) or work with the reciprocal
+   |G_M|/A_M, which is finite there. Do NOT report a blow-up as "R shears."
 2. **Homogeneity check.** A ratio that "varies" only because A_M is homogeneous-constant while G_M varies is NOT a
    shear of the RATE. A real geometric shear needs A_M and G_M to have DIFFERENT M-structure AND a p-dependence not
    removable by one global normalization. Test: is R(p,M) a genuine non-constant function of p after fixing one
@@ -176,10 +178,12 @@ using the pinned canonical A_M = A_M^(ii) = Var (and the cross-check A_M^(iii)).
 G_M = Var + ¾⟨M⟩² − ½Tr(M²) ⇒ R = Var / |Var + ¾⟨M⟩² − ½Tr(M²)|. The shear is entirely the relative-entropy
 correction ¾⟨M⟩² − ½Tr(M²) — a state-space quantity, not geometry.
 
-**Preempting a spurious LIVE-TENSOR.** The canonical local area is the metric **TRACE** of the metric-mode dφ_M⊗dφ_M
-(candidate ii is literally g^{ij̄}∂φ∂φ = the trace). By construction it carries the trace (scalar) part, NOT the TT
-(traceless-transverse) part. So even if one (wrongly) routed past the Fisher gate to G2, the area source is
-pure-trace ⇒ at most LIVE-SCALAR, never LIVE-TENSOR. State this.
+**Preempting a spurious LIVE-TENSOR (adversarial-sharpened).** Do NOT claim the TT channel is "structurally
+precluded" — it is PRESENT. Because the metric-mode dφ_M⊗dφ_M is rank-1 (s⊗s with |s|²_g = Var), EVERY FS-canonical
+area invariant of it is a fixed power of the Fisher variance: the metric-trace A_ii = Var, the full norm
+‖dφ_M⊗dφ_M‖²_g = 4·Var², and the transverse-traceless part A_TT = ‖traceless part‖²_g = 3·Var². So the TT channel
+exists but is itself a Fisher monomial (a power of Var) — it supplies NO independent geometric shearing rate.
+LIVE-TENSOR is killed not by TT-absence but by TT-being-Fisher. State this.
 
 ---
 
