@@ -553,6 +553,64 @@ async def test_search_papers_short_circuits_to_openalex(
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "extra_arg",
+    [
+        {"categories": ["hep-ph"]},
+        {"date_from": "2025-01-01"},
+        {"date_to": "2025-12-31"},
+        {"sort_by": "submittedDate"},
+        {"categories": ["hep-ph"], "date_from": "2025-01-01"},
+    ],
+    ids=["categories", "date_from", "date_to", "sort_by_non_relevance", "combined"],
+)
+async def test_search_papers_falls_through_to_upstream_when_filters_present(
+    extra_arg: dict[str, object],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """OpenAlex translator only honors query + max_results. Any filter-bearing
+    call must skip the OpenAlex short-circuit and fall through to upstream so
+    `categories` / `date_from` / `date_to` / non-default `sort_by` are not
+    silently dropped on the wire."""
+    from gpd.mcp.servers import _arxiv_token_bucket, arxiv_translators
+    from gpd.mcp.servers.arxiv_bridge import ArxivBridge, ArxivBridgeConfig
+
+    _arxiv_token_bucket._reset_for_tests()
+
+    async def no_sleep(_seconds: float) -> None:
+        return None
+
+    monkeypatch.setattr(_arxiv_token_bucket.asyncio, "sleep", no_sleep)
+
+    translator_called: list[dict] = []
+
+    def fake_search(args: dict) -> dict:
+        translator_called.append(args)
+        return {
+            "papers": [{"id": "2401.12345", "title": "T", "authors": ["A"]}],
+            "total_results": 1,
+        }
+
+    monkeypatch.setattr(arxiv_translators, "openalex_search", fake_search)
+
+    fake, log = _make_fake_session()
+    bridge = ArxivBridge(ArxivBridgeConfig(backend="hybrid"))
+    bridge._session = fake  # type: ignore[assignment]
+    try:
+        args = {"query": "q", **extra_arg}
+        await bridge.call_tool("search_papers", args)
+    finally:
+        bridge._session = None
+
+    assert translator_called == [], (
+        f"OpenAlex translator must NOT be invoked when caller passes "
+        f"non-translatable filters; got args={translator_called}"
+    )
+    assert log, "upstream session must be called when filters are present"
+    assert log[0][0] == "search_papers"
+
+
+@pytest.mark.asyncio
 async def test_get_abstract_short_circuits_to_openalex(
     monkeypatch: pytest.MonkeyPatch, tmp_path
 ) -> None:
@@ -596,6 +654,66 @@ async def test_get_abstract_short_circuits_to_openalex(
 
     assert log == [], "upstream session must not be called when OpenAlex succeeds"
     assert first.content[0].text == second.content[0].text
+
+
+@pytest.mark.asyncio
+async def test_get_abstract_error_payload_does_not_get_confirmation_header(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
+    """An upstream payload of the form
+        {"status": "error", "message": "...", "paper_id": "invalid"}
+    with isError=False must NOT be wrapped with a "Returned arxiv:invalid —
+    canonical paper served" header. The header is a positive assertion of
+    success and prepending it in front of an error payload actively misleads
+    the model (it is the exact failure mode the header was added to prevent
+    on the inverted hallucination axis). Regression for the CodeRabbit
+    outside-diff finding on PR #233."""
+    from gpd.mcp.servers import _arxiv_cache, _arxiv_token_bucket, arxiv_translators
+    from gpd.mcp.servers.arxiv_bridge import ArxivBridge, ArxivBridgeConfig
+
+    _arxiv_token_bucket._reset_for_tests()
+    monkeypatch.setattr(_arxiv_cache, "_CACHE_DIR", tmp_path)
+    monkeypatch.setattr(_arxiv_cache, "_CACHE_DB", tmp_path / "cache.sqlite")
+
+    async def no_sleep(_seconds: float) -> None:
+        return None
+
+    monkeypatch.setattr(_arxiv_token_bucket.asyncio, "sleep", no_sleep)
+    # OpenAlex translator declines (caller falls through to upstream).
+    monkeypatch.setattr(
+        arxiv_translators,
+        "openalex_abstract",
+        lambda _args: {"status": "error", "paper_id": "invalid", "title": "", "authors": [], "abstract": "", "categories": [], "published": "", "pdf_url": "", "message": "lookup failed"},
+    )
+
+    import mcp.types as types
+
+    class FakeSession:
+        async def call_tool(self, name, arguments):
+            return types.CallToolResult(
+                content=[
+                    types.TextContent(
+                        type="text",
+                        text='{"status": "error", "message": "Paper not found", "paper_id": "invalid"}',
+                    )
+                ],
+            )
+
+    bridge = ArxivBridge(ArxivBridgeConfig(storage_path=tmp_path, backend="hybrid"))
+    bridge._session = FakeSession()  # type: ignore[assignment]
+    try:
+        result = await bridge.call_tool("get_abstract", {"paper_id": "invalid"})
+    finally:
+        bridge._session = None
+
+    payload = result.content[0].text
+    assert "Returned arxiv:" not in payload, (
+        f"error-status payloads must NOT be wrapped with a 'Returned arxiv:' "
+        f"header; got payload={payload[:300]!r}"
+    )
+    assert '"status": "error"' in payload, (
+        f"error body must be preserved verbatim; got payload={payload[:300]!r}"
+    )
 
 
 @pytest.mark.asyncio
@@ -704,6 +822,151 @@ async def test_download_paper_falls_through_to_upstream_on_total_miss(
     assert log == [("download_paper", {"paper_id": "2401.12345"})], (
         "upstream session must be called as last resort"
     )
+
+
+@pytest.mark.asyncio
+async def test_download_paper_large_returns_path_not_inline(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
+    """A paper above the inline threshold comes back as a saved-file path +
+    preview, never as a giant inline `content` blob (RES-1205)."""
+    import json as _json
+
+    from gpd.mcp.servers import _arxiv_ar5iv, _arxiv_gcs, _arxiv_token_bucket
+    from gpd.mcp.servers.arxiv_bridge import (
+        _CONTENT_WARNING,
+        _INLINE_CONTENT_MAX_BYTES,
+        ArxivBridge,
+        ArxivBridgeConfig,
+    )
+
+    _arxiv_token_bucket._reset_for_tests()
+
+    async def no_sleep(_seconds: float) -> None:
+        """Stub out the token-bucket backoff so the test runs instantly."""
+        return None
+
+    big_body = "\n".join(f"line {i} of a long paper" for i in range(8000))
+    assert len(big_body.encode("utf-8")) > _INLINE_CONTENT_MAX_BYTES
+
+    monkeypatch.setattr(_arxiv_token_bucket.asyncio, "sleep", no_sleep)
+    monkeypatch.setattr(_arxiv_ar5iv, "fetch_html_content", lambda pid: big_body)
+    monkeypatch.setattr(_arxiv_gcs, "fetch_pdf_from_gcs", lambda pid: None)
+
+    fake, log = _make_fake_session()
+    bridge = ArxivBridge(ArxivBridgeConfig(storage_path=tmp_path, backend="hybrid"))
+    bridge._session = fake  # type: ignore[assignment]
+    try:
+        result = await bridge.call_tool("download_paper", {"paper_id": "2401.12345"})
+    finally:
+        bridge._session = None
+
+    assert log == []
+    payload = _json.loads(result.content[0].text)
+    assert payload["status"] == "success"
+    assert payload["source"] == "html-ar5iv"
+    # No full inline dump — the model gets a path + preview instead.
+    assert "content" not in payload
+    assert payload["path"].endswith("2401.12345.md")
+    assert payload["content_lines"] == big_body.count("\n") + 1
+    # Prompt-injection guard preserved in the envelope.
+    assert payload["preview"].startswith(_CONTENT_WARNING)
+    assert "untrusted" in payload["instructions"].lower()
+    # The saved file holds the raw body (no warning prefix on disk).
+    saved = (tmp_path / "2401.12345.md").read_text(encoding="utf-8")
+    assert saved == big_body
+
+
+@pytest.mark.asyncio
+async def test_read_paper_large_cache_hit_returns_path(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
+    """read_paper serves a large cached paper as a path, not an inline dump —
+    closing the search → download → read_paper recurrence of RES-1205."""
+    import json as _json
+
+    from gpd.mcp.servers import _arxiv_token_bucket
+    from gpd.mcp.servers.arxiv_bridge import (
+        _CONTENT_WARNING,
+        _INLINE_CONTENT_MAX_BYTES,
+        ArxivBridge,
+        ArxivBridgeConfig,
+    )
+
+    _arxiv_token_bucket._reset_for_tests()
+
+    big_body = "\n".join(f"line {i} of a long paper" for i in range(8000))
+    assert len(big_body.encode("utf-8")) > _INLINE_CONTENT_MAX_BYTES
+    (tmp_path / "2401.12345.md").write_text(big_body, encoding="utf-8")
+
+    fake, log = _make_fake_session()
+    bridge = ArxivBridge(ArxivBridgeConfig(storage_path=tmp_path, backend="hybrid"))
+    bridge._session = fake  # type: ignore[assignment]
+    try:
+        result = await bridge.call_tool("read_paper", {"paper_id": "2401.12345"})
+    finally:
+        bridge._session = None
+
+    assert log == [], "cache hit must not call upstream"
+    payload = _json.loads(result.content[0].text)
+    assert payload["status"] == "success"
+    assert payload["source"] == "cache"
+    assert "content" not in payload
+    assert payload["path"].endswith("2401.12345.md")
+    assert payload["preview"].startswith(_CONTENT_WARNING)
+
+
+@pytest.mark.asyncio
+async def test_read_paper_cache_miss_falls_through_to_upstream(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
+    """When the paper isn't cached, read_paper defers to upstream so its
+    'download first' error (with the available-papers list) still reaches the
+    model."""
+    from gpd.mcp.servers import _arxiv_token_bucket
+    from gpd.mcp.servers.arxiv_bridge import ArxivBridge, ArxivBridgeConfig
+
+    _arxiv_token_bucket._reset_for_tests()
+
+    fake, log = _make_fake_session()
+    bridge = ArxivBridge(ArxivBridgeConfig(storage_path=tmp_path, backend="hybrid"))
+    bridge._session = fake  # type: ignore[assignment]
+    try:
+        await bridge.call_tool("read_paper", {"paper_id": "2401.12345"})
+    finally:
+        bridge._session = None
+
+    assert log == [("read_paper", {"paper_id": "2401.12345"})]
+
+
+@pytest.mark.asyncio
+async def test_read_paper_small_cache_hit_stays_inline(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
+    """Small cached papers keep the fast inline path."""
+    import json as _json
+
+    from gpd.mcp.servers import _arxiv_token_bucket
+    from gpd.mcp.servers.arxiv_bridge import _CONTENT_WARNING, ArxivBridge, ArxivBridgeConfig
+
+    _arxiv_token_bucket._reset_for_tests()
+
+    body = "# short note\n\nbody"
+    (tmp_path / "2401.12345.md").write_text(body, encoding="utf-8")
+
+    fake, log = _make_fake_session()
+    bridge = ArxivBridge(ArxivBridgeConfig(storage_path=tmp_path, backend="hybrid"))
+    bridge._session = fake  # type: ignore[assignment]
+    try:
+        result = await bridge.call_tool("read_paper", {"paper_id": "2401.12345"})
+    finally:
+        bridge._session = None
+
+    assert log == []
+    payload = _json.loads(result.content[0].text)
+    assert payload["content"].startswith(_CONTENT_WARNING)
+    assert "body" in payload["content"]
+    assert "path" not in payload
 
 
 @pytest.mark.asyncio
