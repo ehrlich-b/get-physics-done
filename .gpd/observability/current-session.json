@@ -1,11 +1,16 @@
 {
-  "session_id": "20260417T003225-97071-100db2",
-  "started_at": "2026-04-17T00:32:25.647118+00:00",
-  "last_event_at": "2026-04-17T16:20:08.319212+00:00",
+  "session_id": "20260530T214835-20109-84a6c5",
+  "started_at": "2026-05-30T21:48:35.060213+00:00",
+  "last_event_at": "2026-06-03T00:30:29.862334+00:00",
   "cwd": "/Users/ehrlich/scratch/get-physics-done",
-  "source": "python",
-  "pid": 97071,
-  "command": "observe event",
+  "source": "trace",
+  "pid": 20109,
+  "command": "trace start",
   "status": "active",
-  "metadata": {}
+  "metadata": {
+    "component": "trace",
+    "phase": "70",
+    "plan": "02",
+    "trace_id": "70-02"
+  }
 }
