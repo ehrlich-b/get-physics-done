@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "patterns": [
+    {
+      "id": "mathematical-convention-pitfall-exact-over-q-rank-lock-with-module-local-source-guard",
+      "file": "patterns-by-domain/mathematical/convention-pitfall-exact-over-q-rank-lock-with-module-local-source-guard.md",
+      "domain": "mathematical",
+      "category": "convention-pitfall",
+      "severity": "medium",
+      "confidence": "single_observation",
+      "title": "Exact-over-Q rank lock with module-local source guard",
+      "first_seen": "2026-05-26",
+      "last_seen": "2026-05-26",
+      "occurrence_count": 1,
+      "tags": [
+        "exact-over-q",
+        "rank",
+        "lock",
+        "with",
+        "module-local",
+        "source",
+        "guard",
+        "decisive",
+        "invariant-theory",
+        "ranks"
+      ]
+    }
+  ]
+}

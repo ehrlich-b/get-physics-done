@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "round": 1,
+  "stage_id": "reader",
+  "stage_kind": "reader",
+  "manuscript_path": "paper8/main.tex",
+  "manuscript_sha256": "04db949cf40ee39932b66b0ee08b5bebdd5c7dc18d46b9415947a820ab04e372",
+  "claims_reviewed": [
+    "CLM-001", "CLM-002", "CLM-003", "CLM-004", "CLM-005",
+    "CLM-006", "CLM-007", "CLM-008", "CLM-009", "CLM-010",
+    "CLM-011", "CLM-012"
+  ],
+  "summary": "Paper 8 resolves Gap C (complexification of V_{1/2}) via thermodynamic selection: non-complexified blocks carry zero experiential measure because they cannot sustain the entropy gradient needed for self-modeling. The paper's individual technical components are sound (SWAP channel analysis, Landauer bound, chirality/time-orientation link, entropy gradient theorem). However, the central selection chain has a logical gap: the step from 'no chirality' to 'no time-orientation' reverses the proven direction. The paper proves 'chirality requires time-orientation' (contrapositive: 'no time-orientation -> no chirality'), but the chain needs 'no chirality -> no time-orientation', which is the converse, not the contrapositive, and is false -- time-orientation can exist without chirality. This gap undermines the main theorem (CLM-001) and the selection chain (CLM-008). The paper's extensive non-claims sections and assumption registers are unusually thorough, and the body text is more honest than the abstract about the resolution's conditional nature.",
+  "strengths": [
+    "Extensive and honest non-claims sections (Sec 1.3, 3.5, 5.5, 6.6) that explicitly state what is NOT proved.",
+    "Three independent routes to the entropy gradient theorem with different assumption subsets, making the result robust.",
+    "Clean application of standard quantum information theory (SWAP channel, Kraus decomposition, Lindblad theorem) with full derivations.",
+    "Complete assumption register with severity classification and dependency map.",
+    "Clear separation between framework predictions (P1-P6) and model-dependent estimates (P7-P9).",
+    "The Landauer bound application to the self-modeling cycle (Thm 1) is well-grounded in established physics."
+  ],
+  "findings": [
+    {
+      "issue_id": "RDR-001",
+      "claim_ids": ["CLM-001", "CLM-008"],
+      "severity": "critical",
+      "summary": "The selection chain step 'no chirality -> no time-orientation' reverses the proven implication direction.",
+      "rationale": "The paper proves chirality requires time-orientation (Prop 2, Thm 3c). The valid contrapositive is 'no time-orientation -> no chirality'. But the selection chain (Sec 5.2, steps 6-5) needs 'no chirality -> no time-orientation', which is the converse, not the contrapositive. A manifold can be time-oriented without supporting chiral matter. This gap breaks the core of the Gap C resolution.",
+      "evidence_refs": ["paper8/sections/gradient-gapc.tex#selection-chain", "paper8/sections/chirality-time.tex#three-consequences"],
+      "manuscript_locations": ["paper8/sections/gradient-gapc.tex:201-221", "paper8/sections/gradient-gapc.tex:251-268"],
+      "support_status": "unsupported",
+      "blocking": true,
+      "required_action": "Either (a) establish the missing direction 'no chirality -> no time-orientation' within the framework's structure-space formalism (perhaps by showing that in h_3(O) blocks, time-orientation is available ONLY through the chirality mechanism), or (b) substantially weaken the claim to acknowledge this gap, or (c) restructure the selection argument to avoid needing this direction."
+    },
+    {
+      "issue_id": "RDR-002",
+      "claim_ids": ["CLM-001", "CLM-012"],
+      "severity": "major",
+      "summary": "Abstract and concluding remarks frame the result as stronger than the conditional selection argument it actually is.",
+      "rationale": "The abstract says 'We resolve Gap C via thermodynamic selection.' The body (Sec 1.3, Remark 3) correctly states this is 'explicitly weaker than proved algebraically.' The concluding remarks (Sec 7.6) claim to answer 'why complex numbers in QM?' but the paper addresses only the complexification of a specific 16-dimensional representation space, not the use of complex numbers in QM's Hilbert space formulation. The framing outruns the content.",
+      "evidence_refs": ["paper8/sections/abstract.tex", "paper8/sections/discussion.tex#concluding"],
+      "manuscript_locations": ["paper8/sections/abstract.tex:27-30", "paper8/sections/discussion.tex:288-290"],
+      "support_status": "partially_supported",
+      "blocking": true,
+      "required_action": "Narrow the abstract to reflect the conditional nature of the resolution. Remove or qualify the 'why complex numbers in QM?' framing in the concluding remarks to reflect the actual scope (complexification of V_{1/2}, not complex Hilbert spaces)."
+    },
+    {
+      "issue_id": "RDR-003",
+      "claim_ids": ["CLM-005", "CLM-008"],
+      "severity": "major",
+      "summary": "The 'chirality-thermodynamics nexus' (Corollary 1) overstates a shared-prerequisite observation as a structural connection.",
+      "rationale": "Time-orientation is required for chirality (geometric fact) and is required for defining a preferred direction of entropy increase (physical fact). But these requirements are logically independent -- they both need time-orientation, but satisfying one does not entail or cause the other. The corollary presents this as 'the chirality of the Standard Model and the thermodynamic arrow of time share a common geometric prerequisite' which is true but banal; many things require time-orientation. The paper elevates this shared prerequisite into a 'nexus' that suggests a deeper connection than exists.",
+      "evidence_refs": ["paper8/sections/gradient-gapc.tex#nexus"],
+      "manuscript_locations": ["paper8/sections/gradient-gapc.tex:454-472"],
+      "support_status": "partially_supported",
+      "blocking": false,
+      "required_action": "Downgrade the nexus from a corollary to a remark. State explicitly that the two requirements are logically independent and the connection is the shared prerequisite, not a causal or explanatory link."
+    },
+    {
+      "issue_id": "RDR-004",
+      "claim_ids": ["CLM-007"],
+      "severity": "minor",
+      "summary": "The 94-order-of-magnitude gap is presented as a 'feature' when it is actually a vacuous bound.",
+      "rationale": "A necessary condition that is 94 orders of magnitude weaker than the actual value provides essentially no constraint. The paper acknowledges the mechanisms differ (Landauer = information processing, Penrose = gravitational) but then frames the comparison as if it validates the framework. A bound weaker by 10^94 is consistent with everything and constrains nothing. The comparison is informative but should not be framed as a positive result.",
+      "evidence_refs": ["paper8/sections/predictions.tex#penrose"],
+      "manuscript_locations": ["paper8/sections/predictions.tex:112-121"],
+      "support_status": "partially_supported",
+      "blocking": false,
+      "required_action": "Reframe the Penrose comparison as a consistency check showing the Landauer bound does not contradict observations, rather than as a feature of the framework."
+    },
+    {
+      "issue_id": "RDR-005",
+      "claim_ids": ["CLM-001"],
+      "severity": "minor",
+      "summary": "'Structure space' and 'blocks' are never defined in this paper.",
+      "rationale": "These terms are used throughout (starting in the abstract) but come from Paper 5. A reader encountering this paper independently has no definition of what structure space is, how it is parameterized, or what a 'block' is. The selection argument's domain is undefined for a standalone reader.",
+      "evidence_refs": ["paper8/sections/abstract.tex", "paper8/sections/gradient-gapc.tex"],
+      "manuscript_locations": ["paper8/sections/abstract.tex:27", "paper8/sections/gradient-gapc.tex:282-283"],
+      "support_status": "unclear",
+      "blocking": false,
+      "required_action": "Add a brief definition of structure space and blocks in the introduction, or at minimum a forward reference with enough context for a standalone reader."
+    },
+    {
+      "issue_id": "RDR-006",
+      "claim_ids": ["CLM-008"],
+      "severity": "major",
+      "summary": "The selection chain does not account for time-orientation arising from mechanisms other than chirality.",
+      "rationale": "The chain assumes: no chirality -> no time-orientation. But time-orientation is a property of the Lorentzian manifold itself (e.g., all globally hyperbolic spacetimes are time-orientable). A block could have time-orientation from the lattice Hamiltonian evolution (which the paper itself identifies in Sec 4.4 as providing time-orientation via the sign of e^{-iHt}), an entropy gradient from standard thermodynamics, and self-modeling -- all WITHOUT chirality or complexification. The paper's own Sec 4.4 argument that 'Hamiltonian evolution provides time-orientation' actually undermines the selection chain.",
+      "evidence_refs": ["paper8/sections/chirality-time.tex#weyl-conditions", "paper8/sections/gradient-gapc.tex#selection-chain"],
+      "manuscript_locations": ["paper8/sections/chirality-time.tex:245-250", "paper8/sections/gradient-gapc.tex:201-211"],
+      "support_status": "unsupported",
+      "blocking": true,
+      "required_action": "Address the fact that Sec 4.4 establishes time-orientation from Hamiltonian evolution independently of chirality. Either restrict the selection argument to a narrower claim, or explain why the Hamiltonian-derived time-orientation is insufficient for the entropy gradient without chirality."
+    }
+  ],
+  "confidence": "high",
+  "recommendation_ceiling": "major_revision"
+}

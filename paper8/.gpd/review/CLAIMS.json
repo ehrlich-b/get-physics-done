@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "round": 1,
+  "manuscript_path": "paper8/main.tex",
+  "manuscript_sha256": "04db949cf40ee39932b66b0ee08b5bebdd5c7dc18d46b9415947a820ab04e372",
+  "claims": [
+    {
+      "claim_id": "CLM-001",
+      "claim_type": "main_result",
+      "text": "Non-complexified blocks of structure space have rho_exp = 0; complexification of V_{1/2} is necessary for rho_exp > 0 (Gap C resolution via thermodynamic selection).",
+      "artifact_path": "paper8/sections/gradient-gapc.tex",
+      "section": "Sec 5, Thm 4 (complexification selection)"
+    },
+    {
+      "claim_id": "CLM-002",
+      "claim_type": "method",
+      "text": "Every self-modeling composite with rho > 0 satisfies S(t) < S_max (entropy gradient theorem), proved via three independent routes using different assumption subsets.",
+      "artifact_path": "paper8/sections/gradient-gapc.tex",
+      "section": "Sec 5.1, Thm 2"
+    },
+    {
+      "claim_id": "CLM-003",
+      "claim_type": "method",
+      "text": "Each self-modeling update cycle dissipates work W >= k_B T I(B;M) (Landauer bound on self-modeling).",
+      "artifact_path": "paper8/sections/landauer.tex",
+      "section": "Sec 3.2, Thm 1"
+    },
+    {
+      "claim_id": "CLM-004",
+      "claim_type": "novelty",
+      "text": "The single algebraic choice u in S^6 determines gauge group, chirality, AND the requirement for spacetime time-orientation (three-consequence theorem, extending Paper 7's two consequences to three).",
+      "artifact_path": "paper8/sections/chirality-time.tex",
+      "section": "Sec 4.5, Thm 3"
+    },
+    {
+      "claim_id": "CLM-005",
+      "claim_type": "physical_interpretation",
+      "text": "Chirality of the Standard Model and the thermodynamic arrow of time share a common geometric prerequisite: time-orientation of the emergent spacetime (chirality-thermodynamics nexus).",
+      "artifact_path": "paper8/sections/gradient-gapc.tex",
+      "section": "Sec 5.4, Corollary 1"
+    },
+    {
+      "claim_id": "CLM-006",
+      "claim_type": "significance",
+      "text": "The Past Hypothesis is elevated from 'observed feature' to 'necessary condition for self-modeling' (not derived, but given observer-selection status).",
+      "artifact_path": "paper8/sections/gradient-gapc.tex",
+      "section": "Sec 5.4"
+    },
+    {
+      "claim_id": "CLM-007",
+      "claim_type": "physical_interpretation",
+      "text": "The Landauer entropy deficit (~10^28 nats) is 94 orders of magnitude below Penrose's gravitational estimate (~10^122 nats), reflecting different physical mechanisms; this gap is a feature, not a failure.",
+      "artifact_path": "paper8/sections/predictions.tex",
+      "section": "Sec 6.2"
+    },
+    {
+      "claim_id": "CLM-008",
+      "claim_type": "generality",
+      "text": "The selection chain from non-complexified V_{1/2} to rho = 0 runs: no chirality -> no time-oriented chiral matter -> no entropy gradient -> no free energy -> no self-modeling -> rho = 0.",
+      "artifact_path": "paper8/sections/gradient-gapc.tex",
+      "section": "Sec 5.2"
+    },
+    {
+      "claim_id": "CLM-009",
+      "claim_type": "method",
+      "text": "The SWAP channel with maximally mixed model is a unital depolarizing channel; unitality is proved, not assumed.",
+      "artifact_path": "paper8/sections/entropy.tex",
+      "section": "Sec 2.1"
+    },
+    {
+      "claim_id": "CLM-010",
+      "claim_type": "method",
+      "text": "Three independent arguments close the coherence loophole: Luders destroys coherence, maintaining coherence costs free energy, Sagawa-Ueda cross-check.",
+      "artifact_path": "paper8/sections/landauer.tex",
+      "section": "Sec 3.3"
+    },
+    {
+      "claim_id": "CLM-011",
+      "claim_type": "significance",
+      "text": "The paper completes the nine-link chain from self-modeling to the chiral Standard Model: 6 proved algebraically, 1 assumed (Gap B1), 1 updated (L7), 1 resolved via selection (L6, this paper).",
+      "artifact_path": "paper8/sections/gradient-gapc.tex",
+      "section": "Sec 5.5, Table 3"
+    },
+    {
+      "claim_id": "CLM-012",
+      "claim_type": "significance",
+      "text": "The paper answers 'why complex numbers in QM?' within the self-modeling framework: because self-modelers require an arrow of time.",
+      "artifact_path": "paper8/sections/discussion.tex",
+      "section": "Sec 7.6"
+    }
+  ]
+}
